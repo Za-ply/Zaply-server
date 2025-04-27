@@ -49,8 +49,6 @@ public class AuthController {
         String refreshToken = jwtProvider.resolveRefreshToken(request);
         String accessToken = jwtProvider.resolveAccessToken(request);
 
-        if(refreshToken==null || accessToken==null) throw new CoreException(GlobalErrorType.TOKEN_NOT_FOUND);
-
         authService.signOut(refreshToken, accessToken);
         return ApiResponse.success("로그아웃 성공");
     }
@@ -59,7 +57,6 @@ public class AuthController {
     @Operation(summary = "토큰 재발급", description = "AccessToken 만료 시 RefreshToken으로 AccessToken 재발급")
     public ApiResponse<TokenResponse> recreate(HttpServletRequest request, @AuthenticationPrincipal AuthDetails authDetails) {
         String token = request.getHeader(tokenHeader);
-        if(token ==null) throw new CoreException(GlobalErrorType.TOKEN_NOT_FOUND);
         return ApiResponse.success(authService.recreate(token, authDetails.getUser()));
     }
 }

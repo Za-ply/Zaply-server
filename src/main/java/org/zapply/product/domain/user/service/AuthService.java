@@ -63,6 +63,7 @@ public class AuthService {
      */
     @Transactional
     public void signOut(String refreshToken, String accessToken) {
+        if(refreshToken==null || accessToken==null) throw new CoreException(GlobalErrorType.TOKEN_NOT_FOUND);
         if(!jwtProvider.validateToken(accessToken)) {
             throw new CoreException(GlobalErrorType.TOKEN_INVALID);
         }
@@ -76,16 +77,13 @@ public class AuthService {
      * @return tokenResponse
      */
     public TokenResponse recreate(String token, Member member) {
-        if (member == null) {
-            throw new CoreException(GlobalErrorType.MEMBER_NOT_FOUND);
-        }
+        if(token ==null) throw new CoreException(GlobalErrorType.TOKEN_NOT_FOUND);
+        if (member == null) throw new CoreException(GlobalErrorType.MEMBER_NOT_FOUND);
 
         String refreshToken = token.substring(7);
         boolean isValid = jwtProvider.validateToken(refreshToken);
 
-        if (!isValid) {
-            throw new CoreException(GlobalErrorType.TOKEN_INVALID);
-        }
+        if (!isValid) throw new CoreException(GlobalErrorType.TOKEN_INVALID);
 
         String email = jwtProvider.getEmail(refreshToken);
         String redisRefreshToken = redisClient.getValue(email);

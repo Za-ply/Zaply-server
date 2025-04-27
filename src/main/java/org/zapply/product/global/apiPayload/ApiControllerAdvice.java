@@ -15,7 +15,7 @@ public class ApiControllerAdvice {
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiResponse<?>> handleException(Exception e) {
         log.error("Exception : {}", e.getMessage(), e);
-        return new ResponseEntity<>(ApiResponse.error(GlobalErrorType.E500), GlobalErrorType.E500.getStatus());
+        return new ResponseEntity<>(ApiResponse.error(GlobalErrorType.INTERNAL_SERVER_ERROR), GlobalErrorType.INTERNAL_SERVER_ERROR.getStatus());
     }
 
     @ExceptionHandler(CoreException.class)

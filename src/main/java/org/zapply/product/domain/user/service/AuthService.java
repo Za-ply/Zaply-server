@@ -25,7 +25,7 @@ public class AuthService {
     private final RedisClient redisClient;
 
     @Value("${jwt.token.refresh-expiration-time}")
-    private long refreshTokenExpirationTime;
+    private Long refreshTokenExpirationTime;
 
     /**
      * 회원가입 메서드

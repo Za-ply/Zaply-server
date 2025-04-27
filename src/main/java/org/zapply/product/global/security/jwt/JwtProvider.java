@@ -14,6 +14,8 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import org.zapply.product.domain.user.dto.response.TokenResponse;
 import org.zapply.product.domain.user.entity.Member;
+import org.zapply.product.global.apiPayload.exception.CoreException;
+import org.zapply.product.global.apiPayload.exception.GlobalErrorType;
 import org.zapply.product.global.redis.RedisClient;
 
 import java.security.Key;
@@ -41,6 +43,11 @@ public class JwtProvider {
         key = Keys.hmacShaKeyFor(secretKeyBytes);
     }
 
+    /**
+     * AccessToken을 생성하는 메서드
+     * @param member
+     * @return
+     */
     public String createAccessToken(Member member) {
         Claims claims = getClaims(member);
         Date now = new Date();
@@ -52,6 +59,11 @@ public class JwtProvider {
                 .compact();
     }
 
+    /**
+     * RefreshToken을 생성하는 메서드
+     * @param member
+     * @return
+     */
     private String createRefreshToken(Member member) {
         Claims claims = getClaims(member);
         Date now = new Date();
@@ -63,6 +75,11 @@ public class JwtProvider {
                 .compact();
     }
 
+    /**
+     * AccessToken과 RefreshToken을 생성하는 메서드
+     * @param member
+     * @return
+     */
     public TokenResponse createToken(Member member) {
         return TokenResponse.of(
                 createAccessToken(member),
@@ -70,6 +87,12 @@ public class JwtProvider {
         );
     }
 
+    /**
+     * AccessToken과 RefreshToken을 재발급하는 메서드
+     * @param member
+     * @param refreshToken
+     * @return
+     */
     public TokenResponse recreate(Member member, String refreshToken) {
         String accessToken = createAccessToken(member);
 
@@ -79,6 +102,11 @@ public class JwtProvider {
         return TokenResponse.of(accessToken, refreshToken);
     }
 
+    /**
+     * 토큰 유효성 검사 메서드
+     * @param token
+     * @return boolean
+     */
     public boolean validateToken(String token) {
         try {
             Jws<Claims> claims = Jwts.parserBuilder()
@@ -91,18 +119,39 @@ public class JwtProvider {
         }
     }
 
+    /**
+     * Bearer Token에서 이메일을 추출하는 메서드
+     * @param token
+     * @return
+     */
     public String getEmail(String token) {
         return Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token).getBody().getSubject();
     }
 
+    /**
+     * AccessToken의 만료 시간을 가져오는 메서드
+     * @param token
+     * @return
+     */
     public Long getExpirationTime(String token) {
         return Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token).getBody().getExpiration().getTime();
     }
 
+    /**
+     * Claims 객체를 생성하는 메서드
+     * @param member
+     * @return
+     */
     private Claims getClaims(Member member) {
         return Jwts.claims().setSubject(member.getEmail());
     }
 
+
+    /**
+     * Bearer Token에서 RefreshToken을 추출하는 메서드
+     * @param request
+     * @return
+     */
     public String resolveRefreshToken(HttpServletRequest request) {
         String bearerToken = request.getHeader("Authorization");
         if (bearerToken != null && bearerToken.startsWith("Bearer ")) {
@@ -111,6 +160,11 @@ public class JwtProvider {
         return null;
     }
 
+    /**
+     * Bearer Token에서 AccessToken을 추출하는 메서드
+     * @param request
+     * @return
+     */
     public String resolveAccessToken(HttpServletRequest request) {
         String bearerToken = request.getHeader("Authorization");
         if (bearerToken != null && bearerToken.startsWith("Bearer ")) {
@@ -119,10 +173,16 @@ public class JwtProvider {
         return null;
     }
 
+    /**
+     * 토큰을 무효화하는 메서드
+     * @param refreshToken
+     * @param accessToken
+     * @throws CoreException
+     */
     @Transactional
     public void invalidateTokens(String refreshToken, String accessToken) {
         if (!validateToken(refreshToken)) {
-           //Todo: Error handling: refresh token is invalid
+           throw new CoreException(GlobalErrorType.TOKEN_INVALID);
         }
         redisClient.deleteValue(getEmail(refreshToken));
         redisClient.setValue(accessToken, "logout", getExpirationTime(accessToken));

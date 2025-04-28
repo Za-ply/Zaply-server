@@ -40,3 +40,5 @@ terraform.rc
 
 # include custom #
 variables.tf
+tf-ncp-bastion-key.pem
+tf-ncp-bastion-root_password.txt

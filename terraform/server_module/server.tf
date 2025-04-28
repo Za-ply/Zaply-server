@@ -27,6 +27,22 @@ resource "ncloud_access_control_group_rule" "ssh" {
     }
 }
 
+resource "ncloud_access_control_group_rule" "http" {
+  access_control_group_no = ncloud_access_control_group.bastion_acg.id
+
+  inbound {
+    protocol   = "TCP"
+    ip_block   = "0.0.0.0/0"
+    port_range = "80"
+  }
+
+  outbound {
+    protocol   = "TCP"
+    ip_block   = "0.0.0.0/0"
+    port_range = "1-65535"
+  }
+}
+
 # 3) Network Interface
 resource "ncloud_network_interface" "bastion_nic" {
     name                  = "${var.name_prefix}-nic"

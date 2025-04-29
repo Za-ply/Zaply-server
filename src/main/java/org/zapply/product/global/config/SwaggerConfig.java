@@ -12,13 +12,11 @@ import org.springframework.context.annotation.Configuration;
 
 import java.util.Collections;
 @OpenAPIDefinition(
-        info = @Info(title = "MeetUp API 명세서",
-                description = "MeetUp API 명세서",
-                version = "v1"
+        info = @Info(title = "MeetUp API 명세서", description = "MeetUp API 명세서", version = "v1"
         ),
         servers = {
                 @Server(url = "http://localhost:8080", description = "로컬 서버 URL"),
-                @Server(url = "https://zapply.site", description = "배포 서버 URL")
+                @Server(url = "${openapi.server.url}", description = "배포 서버 URL")
         }
 )
 

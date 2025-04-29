@@ -9,21 +9,23 @@ import org.zapply.product.domain.user.enumerate.SNSType;
 
 @Getter
 @Entity
+@Table(name = "tb_account")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Account {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(columnDefinition = "bigint", nullable = false)
     private Long accountId;
 
-    @Column(nullable = false)
+    @Column
     private String accountName;
 
-    @Column(nullable = false, columnDefinition = "varchar(255)")
+    @Column
     @Enumerated(EnumType.STRING)
     private SNSType accountType;
 
-    @Column(nullable = false)
+    @Column
     private String tokenKey;
 
     @ManyToOne(fetch = FetchType.LAZY)

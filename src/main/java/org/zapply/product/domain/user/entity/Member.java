@@ -33,9 +33,6 @@ public class Member extends BaseTimeEntity {
     @Column(columnDefinition = "varchar(20)")
     private String name;
 
-    @Column(columnDefinition = "varchar(20)")
-    private LocalDate birthDate;
-
     @Column(nullable = false, columnDefinition = "varchar(255)")
     @Enumerated(EnumType.STRING)
     private MemberType memberType;

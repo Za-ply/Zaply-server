@@ -39,5 +39,7 @@ override.tf.json
 terraform.rc
 
 # include custom #
-tf-ncp-bastion-key.pem
-tf-ncp-bastion-root_password.txt
+variables.tf
+/tf-ncp-bastion-key.pem
+/tf-ncp-bastion-root_password.txt
+

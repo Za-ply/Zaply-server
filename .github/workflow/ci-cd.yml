@@ -77,7 +77,7 @@ jobs:
             docker pull $DOCKER_USERNAME/zaply:latest
           
             # 컨테이너 실행
-            docker run -d --name zaply -p 80:8080 $DOCKER_USERNAME/zaply:latest
+            docker run -d --name zaply --network zaply-network -p 80:8080 $DOCKER_USERNAME/zaply:latest
           EOF
           
           rm ncp_key.pem

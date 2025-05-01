@@ -25,13 +25,32 @@
 
 <br></br>
 
-## 🔨 Project Architecture
-![DWyLfwAAAABJRU5ErkJggg](https://github.com/user-attachments/assets/3f6ad088-d6be-404d-8c43-4a6195c74b8b)
+## 📅 ERD
+![438857549-03c767c7-2d4b-4e72-b786-d1083101ffe7](https://github.com/user-attachments/assets/ee574bf0-eadd-4604-8a7a-96f7f3e21965)
 
 <br></br>
 
-## 📅 ERD
-![438857549-03c767c7-2d4b-4e72-b786-d1083101ffe7](https://github.com/user-attachments/assets/ee574bf0-eadd-4604-8a7a-96f7f3e21965)
+## Api 명세서
+http://zapply.site/swagger-ui/index.html
+
+<br></br>
+
+## 🔨 Project Architecture
+![DWyLfwAAAABJRU5ErkJggg](https://github.com/user-attachments/assets/3f6ad088-d6be-404d-8c43-4a6195c74b8b)
+
+
+<br></br>
+
+## 💬 Question
+[BE]
+1. 페북, 인스타, 스레드 등 sns에서 제공하는 api를 사용하는 서비스 로직이 많은데, 외부 api를 효율적으로 관리하고 사용할 수 있는 방법이 어떤 게 있나요?
+2. 다른 플랫폼의 장기발행 토큰을 안전하게 관리하기 위해 도입할 수 있는 방법이 어떤 게 있나요?
+3. 예약발행 기능을 구현하면서, api를 지정된 시각에 빠짐없이 호출되도록 하고 싶은데, 어떻게 하는게 좋을까요? 찾아보니 메세지 큐 기반으로 구현할 수도 있고, scheduler를 활용해 구현할 수도 있는데, 어떤 기준을 가지고 선택을 하면 좋을까요?
+  
+[FE]
+1. 저희 팀은 PWA를 통해 앱 뷰 형식으로 작업을 진행 중입니다! 앱 처럼 보이기 위해 스플래시 이미지나 앱 로고 이미지를 프론트에서 가지고 있는 상황인데, 이를 webp 확장자로 관리를 하려다 보니 화질이 깨지는 것들이 있어 우선 임시로 png 파일로 들고 있는 상황입니다! 프론트에서 들고 있어야 하는 이미지 파일이 많은 경우의 관리 방식이 궁금합니다!
+2. constants (상수) 관리 시 한 파일 안에 모두 모아두는 방법 말고 분리해서 관리할 수 있는 좋은 방안이 있는지 궁금합니다!
+3. 저희 서비스 성격 상 정적 페이지가 많이 없다고 판단되어 next에서 기본 제공하는 fetch 캐싱이 아닌 tanstack-query를 활용한 클라이언트 캐싱을 하려고 합니다! 이 과정에서 axios 를 활용할 예정인데, axios 를 사용해도 next 의 이점인 서버 캐싱이 가능한지 궁금합니다! 
 
 <br></br>
 

@@ -53,7 +53,9 @@ public class SecurityConfig {
         http.addFilterBefore(exceptionFilter, JwtFilter.class);
 
         http.authorizeHttpRequests((authorize) ->
-                authorize.requestMatchers( "/api-docs/**", "/swagger-ui/**", "/swagger-ui.html",
+                authorize.requestMatchers(
+                        "/api-docs/**", "/swagger-ui/**", "/swagger-ui.html",
+                                "/v1/api-docs/**","/v1/api-docs/swagger-config",
                                 "/swagger-resources/**",
                                 "/v3/api-docs/**").permitAll()
                         .requestMatchers(HttpMethod.GET,"/api/v1/images/presigned-url").permitAll()

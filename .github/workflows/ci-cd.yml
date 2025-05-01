@@ -54,7 +54,7 @@ jobs:
 
       # Deploy to NCP 전에 추가
       - name: Load SSH key
-        uses: webfactory/ssh-agent@v0.8.1
+        uses: webfactory/ssh-agent@v0.9.0
         with:
           ssh-private-key: ${{ secrets.NCP_PEM_KEY }}
 

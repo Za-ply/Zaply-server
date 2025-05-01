@@ -26,3 +26,8 @@ module "server" {
   vpc_no           = module.network.vpc_no
   subnet_public_id = module.network.subnet_public_id
 }
+
+module "storage" {
+  source      = "./storage_module"
+  bucket_name = "${var.name_prefix}-storage"
+}

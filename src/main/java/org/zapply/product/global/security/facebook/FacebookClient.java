@@ -21,6 +21,12 @@ public class FacebookClient {
     @Value("${spring.security.oauth2.client.registration.facebook.client-secret}")
     private String clientSecret;
 
+    @Value("${spring.security.oauth2.client.registration.facebook.access-token-url}")
+    private String accessTokenUrl;
+
+    @Value("${spring.security.oauth2.client.registration.facebook.user-info-url}")
+    private String userInfoUrl;
+
     private final ObjectMapper objectMapper;
     private final RestClient restClient = RestClient.create();
 
@@ -35,7 +41,7 @@ public class FacebookClient {
                 .uri(uriBuilder -> uriBuilder
                         .scheme("https")
                         .host("graph.facebook.com")
-                        .path("/v22.0/oauth/access_token")
+                        .path(accessTokenUrl)
                         .queryParam("client_id", clientId)
                         .queryParam("redirect_uri", redirectUri)
                         .queryParam("client_secret", clientSecret)
@@ -60,7 +66,7 @@ public class FacebookClient {
      */
     public FacebookProfile getMemberInfo(FacebookToken token) {
         String response = restClient.get()
-                .uri("https://graph.facebook.com/me?fields=id,name,email&access_token=" + token.accessToken())
+                .uri(userInfoUrl + token.accessToken())
                 .retrieve()
                 .body(String.class);
         try {
@@ -85,7 +91,7 @@ public class FacebookClient {
                 .uri(uriBuilder -> uriBuilder
                         .scheme("https")
                         .host("graph.facebook.com")
-                        .path("/v22.0/oauth/access_token")
+                        .path(accessTokenUrl)
                         .queryParam("grant_type", "fb_exchange_token")
                         .queryParam("client_id", clientId)
                         .queryParam("client_secret", clientSecret)

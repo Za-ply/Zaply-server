@@ -13,8 +13,6 @@ import org.zapply.product.domain.user.dto.request.SignInRequest;
 import org.zapply.product.domain.user.dto.response.MemberResponse;
 import org.zapply.product.domain.user.dto.response.TokenResponse;
 import org.zapply.product.domain.user.service.AuthService;
-import org.zapply.product.global.apiPayload.exception.CoreException;
-import org.zapply.product.global.apiPayload.exception.GlobalErrorType;
 import org.zapply.product.global.apiPayload.response.ApiResponse;
 import org.zapply.product.global.security.AuthDetails;
 import org.zapply.product.global.security.jwt.JwtProvider;
@@ -57,6 +55,6 @@ public class AuthController {
     @Operation(summary = "토큰 재발급", description = "AccessToken 만료 시 RefreshToken으로 AccessToken 재발급")
     public ApiResponse<TokenResponse> recreate(HttpServletRequest request, @AuthenticationPrincipal AuthDetails authDetails) {
         String token = request.getHeader(tokenHeader);
-        return ApiResponse.success(authService.recreate(token, authDetails.getUser()));
+        return ApiResponse.success(authService.recreate(token, authDetails.getMember()));
     }
 }

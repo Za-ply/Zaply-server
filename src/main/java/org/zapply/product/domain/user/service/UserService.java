@@ -5,7 +5,7 @@ import org.springframework.stereotype.Service;
 import org.zapply.product.domain.user.dto.request.AuthRequest;
 import org.zapply.product.domain.user.entity.Credential;
 import org.zapply.product.domain.user.entity.Member;
-import org.zapply.product.domain.user.repository.UserRepository;
+import org.zapply.product.domain.user.repository.MemberRepository;
 import org.zapply.product.global.apiPayload.exception.CoreException;
 import org.zapply.product.global.apiPayload.exception.GlobalErrorType;
 
@@ -13,7 +13,7 @@ import org.zapply.product.global.apiPayload.exception.GlobalErrorType;
 @RequiredArgsConstructor
 public class UserService {
 
-    private final UserRepository userRepository;
+    private final MemberRepository memberRepository;
 
     /**
      * Credential을 생성하고 저장하는 메서드
@@ -22,11 +22,11 @@ public class UserService {
      * @return Member
      */
     public Member createUser(Credential credential, AuthRequest authRequest) {
-        userRepository.findByEmail(authRequest.email()).ifPresent(existingUser -> {
+        memberRepository.findByEmailAndDeletedAtIsNull(authRequest.email()).ifPresent(existingUser -> {
            throw new CoreException(GlobalErrorType.MEMBER_ALREADY_EXISTS);
         });
         Member member = authRequest.toMember(credential);
-        return userRepository.save(member);
+        return memberRepository.save(member);
     }
 
     /**
@@ -35,7 +35,7 @@ public class UserService {
      * @return Member
      */
     public Member getUserByEmail(String email) {
-        return userRepository.findByEmail(email)
+        return memberRepository.findByEmailAndDeletedAtIsNull(email)
                 .orElseThrow(() -> new CoreException(GlobalErrorType.MEMBER_NOT_FOUND));
     }
 }

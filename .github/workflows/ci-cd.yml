@@ -52,19 +52,21 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
+      # Deploy to NCP 전에 추가
+      - name: Load SSH key
+        uses: webfactory/ssh-agent@v0.8.1
+        with:
+          ssh-private-key: ${{ secrets.NCP_PEM_KEY }}
+
       # 7. EC2로 배포
       - name: Deploy to NCP
         env:
-          NCP_PEM_KEY: ${{ secrets.NCP_PEM_KEY }}
           NCP_HOST: ${{ secrets.NCP_HOST }}
           NCP_USER: ${{ secrets.NCP_USER }}
           NCP_PASS:    ${{ secrets.NCP_PASSWORD }}
           DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
-        run: |
-          echo "$NCP_PEM_KEY" > ncp_key.pem
-          chmod 400 ncp_key.pem
-          
-          ssh -i ncp_key.pem -o StrictHostKeyChecking=no $NCP_USER@$NCP_HOST << EOF
+        run: |  
+          ssh -o StrictHostKeyChecking=no $NCP_USER@$NCP_HOST << 'EOF'
             # 비밀번호 파이프로 넘기기 (-S: 표준입력에서 비밀번호 읽음)
             printf "%s\n" "$NCP_PASS" | sudo -S apt update
             printf "%s\n" "$NCP_PASS" | sudo -S apt install -y docker.io

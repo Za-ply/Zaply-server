@@ -75,6 +75,11 @@ public class FacebookClient {
         }
     }
 
+    /**
+     * 페이스북에서 받은 단기 액세스 토큰을 통해 장기 액세스 토큰 요청하기
+     * @param shortLivedToken
+     * @return FacebookToken
+     */
     public FacebookToken getLongLivedToken(String shortLivedToken) {
         String response = restClient.get()
                 .uri(uriBuilder -> uriBuilder

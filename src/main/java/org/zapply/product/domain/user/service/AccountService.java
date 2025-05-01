@@ -37,16 +37,20 @@ public class AccountService {
      */
     public String linkFacebook(String code, Member member) {
         // 페이스북으로 액세스 토큰 요청하기
-        FacebookToken facebookAccessToken = facebookClient.getFacebookAccessToken(code, facebookRedirectUrl);
+        FacebookToken shortFacebookAccessToken = facebookClient.getFacebookAccessToken(code, facebookRedirectUrl);
+        FacebookToken longFacebookAccessToken = facebookClient.getLongLivedToken(shortFacebookAccessToken.accessToken());
 
         // 페이스북에 있는 사용자 정보 반환
-        FacebookProfile facebookProfile = facebookClient.getMemberInfo(facebookAccessToken);
+        FacebookProfile facebookProfile = facebookClient.getMemberInfo(longFacebookAccessToken);
 
         // 반환된 정보의 이메일 추출
         String email = facebookProfile.email();
         if (email == null) {
             throw new CoreException(GlobalErrorType.EMAIL_NOT_FOUND);
         }
+
+        // rediskey 생성
+        String redisKey = "facebook:" + generateRedisKey(member.getId(), email);
 
         //bussiness logic: account 정보가 이미 있다면 확인 후 해당 account 정보를 반환하고, 없다면 새로운 account 정보를 생성하여 반환
         Account account = accountRepository.findByEmailAndAccountTypeAndMember(email, SNSType.FACEBOOK, member)
@@ -55,17 +59,14 @@ public class AccountService {
                             .accountName(facebookProfile.name())
                             .email(email)
                             .accountType(SNSType.FACEBOOK)
-                            .tokenKey("facebook:" + email)
+                            .tokenKey(redisKey)
                             .member(member)
                             .build();
                     return accountRepository.save(newAccount);
                 });
 
-        // redis에 페이스북 액세스 토큰 저장
-        String redisKey = "facebook:" + generateRedisKey(member.getId(), email);
-
-        // Redis에 값 저장 (72시간)
-        redisClient.setValue(redisKey, facebookAccessToken.accessToken(), 259200L);
+        // Redis에 값 저장 (60일동안 유지)
+        redisClient.setValue(redisKey, longFacebookAccessToken.accessToken(), 5184000L);
 
         return redisKey;
     }

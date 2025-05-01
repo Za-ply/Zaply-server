@@ -74,4 +74,26 @@ public class FacebookClient {
             throw new CoreException(GlobalErrorType.FACEBOOK_API_ERROR);
         }
     }
+
+    public FacebookToken getLongLivedToken(String shortLivedToken) {
+        String response = restClient.get()
+                .uri(uriBuilder -> uriBuilder
+                        .scheme("https")
+                        .host("graph.facebook.com")
+                        .path("/v22.0/oauth/access_token")
+                        .queryParam("grant_type", "fb_exchange_token")
+                        .queryParam("client_id", clientId)
+                        .queryParam("client_secret", clientSecret)
+                        .queryParam("fb_exchange_token", shortLivedToken)
+                        .build())
+                .retrieve()
+                .body(String.class);
+
+        try {
+            JsonNode jsonNode = objectMapper.readTree(response);
+            return new FacebookToken(jsonNode.get("access_token").asText());
+        } catch (IOException e) {
+            throw new CoreException(GlobalErrorType.FACEBOOK_API_ERROR);
+        }
+    }
 }

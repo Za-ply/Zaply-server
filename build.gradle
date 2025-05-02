@@ -29,6 +29,9 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-security'
 	implementation 'org.springframework.boot:spring-boot-starter-web'
 
+	// s3
+	implementation 'com.amazonaws:aws-java-sdk-s3:1.12.782'
+
 	// lombok
 	compileOnly 'org.projectlombok:lombok'
 	annotationProcessor 'org.projectlombok:lombok'
@@ -55,9 +58,6 @@ dependencies {
 
 	// swagger 설정
 	implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.5.0'
-
-	// database
-	implementation 'org.postgresql:postgresql'
 }
 
 tasks.named('test') {

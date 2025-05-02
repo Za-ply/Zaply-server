@@ -21,10 +21,10 @@ public class FacebookClient {
     @Value("${spring.security.oauth2.client.registration.facebook.client-secret}")
     private String clientSecret;
 
-    @Value("${spring.security.oauth2.client.registration.facebook.access-token-url}")
+    @Value("${spring.security.oauth2.client.provider.facebook.token-uri}")
     private String accessTokenUrl;
 
-    @Value("${spring.security.oauth2.client.registration.facebook.user-info-url}")
+    @Value("${spring.security.oauth2.client.provider.facebook.user-info-uri}")
     private String userInfoUrl;
 
     private final ObjectMapper objectMapper;

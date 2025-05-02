@@ -15,7 +15,7 @@ public record AuthDetails(Member member) implements UserDetails {
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         List<String> roles = new ArrayList<>();
-        roles.add(member.getMemberType().toString());
+        roles.add("GENERAL");
 
         return roles.stream()
                 .map(SimpleGrantedAuthority::new)

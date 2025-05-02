@@ -6,7 +6,6 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.SQLDelete;
-import org.zapply.product.domain.user.enumerate.MemberType;
 import org.zapply.product.global.BaseTimeEntity;
 
 import java.time.LocalDate;
@@ -33,20 +32,15 @@ public class Member extends BaseTimeEntity {
     @Column(columnDefinition = "varchar(20)")
     private String name;
 
-    @Column(nullable = false, columnDefinition = "varchar(255)")
-    @Enumerated(EnumType.STRING)
-    private MemberType memberType;
-
     @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "credential_id", referencedColumnName = "id")
     private Credential credential;
 
     @Builder
-    public Member(String email, String phoneNumber, String residentNumber, MemberType memberType, Credential credential) {
+    public Member(String email, String phoneNumber, String residentNumber, Credential credential) {
         this.email = email;
         this.phoneNumber = phoneNumber;
         this.residentNumber = residentNumber;
-        this.memberType = memberType != null ? memberType : MemberType.GENERAL;
         this.credential = credential;
     }
 }

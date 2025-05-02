@@ -54,8 +54,8 @@ public class SecurityConfig {
 
         http.authorizeHttpRequests((authorize) ->
                 authorize.requestMatchers(
-                        "/api-docs/**", "/swagger-ui/**", "/swagger-ui.html",
-                                "/v1/api-docs/**","/v1/api-docs/swagger-config",
+                                "/api-docs/**", "/swagger-ui/**", "/swagger-ui.html",
+                                "/v1/api-docs/**", "/v1/api-docs/swagger-config",
                                 "/swagger-resources/**",
                                 "/v3/api-docs/**",
                                 "/v1/account/facebook/link").permitAll()

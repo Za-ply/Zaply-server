@@ -57,7 +57,8 @@ public class SecurityConfig {
                         "/api-docs/**", "/swagger-ui/**", "/swagger-ui.html",
                                 "/v1/api-docs/**","/v1/api-docs/swagger-config",
                                 "/swagger-resources/**",
-                                "/v3/api-docs/**").permitAll()
+                                "/v3/api-docs/**",
+                                "/v1/account/facebook/link").permitAll()
                         .requestMatchers(HttpMethod.GET,"/v1/healthcheck").permitAll()
                         .requestMatchers(HttpMethod.GET,"/v1/image/presigned-url").permitAll()
                         .requestMatchers("/v1/auth/**","/v1/user/**").permitAll()

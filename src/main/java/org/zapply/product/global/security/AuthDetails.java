@@ -21,7 +21,7 @@ public record AuthDetails(Member member) implements UserDetails {
                 .map(SimpleGrantedAuthority::new)
                 .collect(Collectors.toList());
     }
-    public Member getUser() {
+    public Member getMember() {
         return member;
     }
     @Override

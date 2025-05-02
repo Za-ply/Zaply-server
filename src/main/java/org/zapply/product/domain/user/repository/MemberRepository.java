@@ -5,6 +5,6 @@ import org.zapply.product.domain.user.entity.Member;
 
 import java.util.Optional;
 
-public interface UserRepository extends JpaRepository<Member, Long> {
-    Optional<Member> findByEmail(String email);
+public interface MemberRepository extends JpaRepository<Member, Long> {
+    Optional<Member> findByEmailAndDeletedAtIsNull(String email);
 }

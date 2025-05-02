@@ -11,6 +11,8 @@ import org.springframework.stereotype.Service;
 import org.zapply.product.global.objectStorage.dto.ReadPreSignedUrlResponse;
 
 import java.net.URL;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.Date;
 import java.util.UUID;
 
@@ -24,7 +26,9 @@ public class ObjectStorageService {
     private String bucket;
 
     public ReadPreSignedUrlResponse getPreSignedUrl(String prefix, String originalFileName) {
-        String key = String.format("%s/%s-%s", prefix, UUID.randomUUID(), originalFileName);
+        String encodedFileName = URLEncoder.encode(originalFileName, StandardCharsets.UTF_8);
+
+        String key = String.format("%s/%s-%s", prefix, UUID.randomUUID(), encodedFileName);
 
         Date expiration = new Date(System.currentTimeMillis() + 60 * 1000);
 

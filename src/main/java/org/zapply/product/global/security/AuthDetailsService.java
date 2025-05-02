@@ -7,7 +7,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.zapply.product.domain.user.entity.Member;
-import org.zapply.product.domain.user.repository.UserRepository;
+import org.zapply.product.domain.user.repository.MemberRepository;
 import org.zapply.product.global.apiPayload.exception.CoreException;
 import org.zapply.product.global.apiPayload.exception.GlobalErrorType;
 
@@ -16,11 +16,11 @@ import org.zapply.product.global.apiPayload.exception.GlobalErrorType;
 @RequiredArgsConstructor
 public class AuthDetailsService implements UserDetailsService {
 
-    private final UserRepository userRepository;
+    private final MemberRepository memberRepository;
 
     @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
-        Member member = userRepository.findByEmail(email).orElseThrow(() -> new CoreException(GlobalErrorType.MEMBER_NOT_FOUND));
+        Member member = memberRepository.findByEmailAndDeletedAtIsNull(email).orElseThrow(() -> new CoreException(GlobalErrorType.MEMBER_NOT_FOUND));
 
         return new AuthDetails(member);
     }

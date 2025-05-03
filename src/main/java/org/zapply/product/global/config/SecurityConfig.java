@@ -19,6 +19,8 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.zapply.product.global.security.ExceptionFilter;
+import org.zapply.product.global.security.google.oAuth2.CustomOAuth2UserService;
+import org.zapply.product.global.security.google.oAuth2.OAuth2SuccessHandler;
 import org.zapply.product.global.security.jwt.JwtAccessDeniedHandler;
 import org.zapply.product.global.security.jwt.JwtAuthenticationHandler;
 import org.zapply.product.global.security.jwt.JwtFilter;
@@ -34,35 +36,65 @@ public class SecurityConfig {
     private final ExceptionFilter exceptionFilter;
     private final JwtAccessDeniedHandler jwtAccessDeniedHandler;
     private final JwtAuthenticationHandler jwtAuthenticationEntryPoint;
+    private final CustomOAuth2UserService customOAuth2UserService;
+    private final OAuth2SuccessHandler oAuth2SuccessHandler;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+        // CORS & CSRF
         http.cors(Customizer.withDefaults())
                 .csrf(AbstractHttpConfigurer::disable);
 
-        http.sessionManagement((session) -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));// Session 미사용
+        // Session Management
+        http.sessionManagement((session) ->
+                session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));// Session 미사용
+
+        // Disable default login forms
         http.httpBasic(AbstractHttpConfigurer::disable)
                 .formLogin(AbstractHttpConfigurer::disable);
 
-        http.exceptionHandling((exceptionHandling) ->
-                exceptionHandling
+        // Exception handling
+        http.exceptionHandling((exceptionHandling) -> exceptionHandling
                         .accessDeniedHandler(jwtAccessDeniedHandler)
                         .authenticationEntryPoint(jwtAuthenticationEntryPoint)
         );
+
+        // Add JWT filters
         http.addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
         http.addFilterBefore(exceptionFilter, JwtFilter.class);
 
+        // Configure OAuth2 login
+        http.oauth2Login(oauth2 -> oauth2
+                .userInfoEndpoint(userInfo -> userInfo
+                        .userService(customOAuth2UserService))
+                .successHandler(oAuth2SuccessHandler)
+        );
+
+        // Authorization
         http.authorizeHttpRequests((authorize) ->
-                authorize.requestMatchers(
-                                "/api-docs/**", "/swagger-ui/**", "/swagger-ui.html",
-                                "/v1/api-docs/**", "/v1/api-docs/swagger-config",
-                                "/swagger-resources/**",
-                                "/v3/api-docs/**",
-                                "/v1/account/facebook/link").permitAll()
+                authorize
+                        // Swagger UI 및 API 문서
+                        .requestMatchers(
+                                "/swagger-ui.html",
+                                "/swagger-ui/**",
+                                "/v1/api-docs/**"
+                        ).permitAll()
+
+                        // OAuth2 및 Google 인증 엔드포인트
+                        .requestMatchers(
+                                "/oauth2/authorize/**",
+                                "/oauth2/callback/**",
+                                "/api/auth/google/**",
+                                "/api/oauth/callback/*",
+                                "/v1/account/facebook/link"
+                        ).permitAll()
+
+                        // LoadBalancer용 헬스 체크
                         .requestMatchers(HttpMethod.GET,"/v1/healthcheck").permitAll()
-                        .requestMatchers(HttpMethod.GET,"/v1/image/presigned-url").permitAll()
                         .requestMatchers("/v1/auth/**","/v1/user/**").permitAll()
                         .requestMatchers("/error/**").permitAll()
+
+                        // 나머지 요청은 인증 필요
                         .anyRequest().authenticated());
 
         return http.build();

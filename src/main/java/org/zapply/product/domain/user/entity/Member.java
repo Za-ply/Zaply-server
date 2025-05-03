@@ -20,16 +20,16 @@ public class Member extends BaseTimeEntity {
     @Column(nullable = false, columnDefinition = "bigint")
     private Long id;
 
-    @Column(nullable = false, columnDefinition = "varchar(320)")
+    @Column(columnDefinition = "varchar(320)")
     private String email;
 
-    @Column(nullable = false, columnDefinition = "varchar(20)")
+    @Column(columnDefinition = "varchar(20)")
     private String phoneNumber;
 
-    @Column(nullable = false, columnDefinition = "varchar(30)")
+    @Column(columnDefinition = "varchar(30)")
     private String residentNumber;
 
-    @Column(columnDefinition = "varchar(20)")
+    @Column(columnDefinition = "varchar(320)")
     private String name;
 
     @OneToOne(cascade = CascadeType.ALL)
@@ -37,8 +37,9 @@ public class Member extends BaseTimeEntity {
     private Credential credential;
 
     @Builder
-    public Member(String email, String phoneNumber, String residentNumber, Credential credential) {
+    public Member(String name, String email, String phoneNumber, String residentNumber, Credential credential) {
         this.email = email;
+        this.name = name;
         this.phoneNumber = phoneNumber;
         this.residentNumber = residentNumber;
         this.credential = credential;

@@ -44,7 +44,7 @@ public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
         String name = (String) attributes.get("name");
 
         // 회원 조회 또는 생성
-        Member member = memberRepository.findByEmail(email)
+        Member member = memberRepository.findByEmailAndDeletedAtIsNull(email)
                 .orElseGet(() -> {
                     log.info("신규 회원 생성: {}", email);
                     return memberRepository.save(

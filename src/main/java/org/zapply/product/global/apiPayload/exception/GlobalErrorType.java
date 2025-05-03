@@ -29,7 +29,12 @@ public enum GlobalErrorType implements ErrorType {
     // Common
     INTERNAL_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "알 수 없는 내부 오류입니다."),
     FORBIDDEN(HttpStatus.FORBIDDEN, "접근이 금지되었습니다."),
-    UNAUTHORIZED(HttpStatus.UNAUTHORIZED, "인증되지 않은 사용자입니다.");
+    UNAUTHORIZED(HttpStatus.UNAUTHORIZED, "인증되지 않은 사용자입니다."),
+
+    // OAuth
+    OAUTH_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "로그인 중 오류가 발생했습니다.");
+
+
     private final HttpStatus status;
 
     private final String message;

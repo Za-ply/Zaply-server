@@ -13,6 +13,8 @@ import org.springframework.stereotype.Component;
 import org.zapply.product.domain.user.dto.response.TokenResponse;
 import org.zapply.product.domain.user.entity.Member;
 import org.zapply.product.domain.user.repository.MemberRepository;
+import org.zapply.product.global.apiPayload.exception.CoreException;
+import org.zapply.product.global.apiPayload.exception.GlobalErrorType;
 import org.zapply.product.global.apiPayload.response.ApiResponse;
 import org.zapply.product.global.redis.RedisClient;
 import org.zapply.product.global.security.jwt.JwtProvider;
@@ -34,34 +36,37 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
 
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response,
-                                        Authentication authentication) throws IOException, ServletException {
+                                        Authentication authentication) throws IOException {
+        try{
+            CustomOAuth2User oAuth2User = (CustomOAuth2User) authentication.getPrincipal();
 
-        CustomOAuth2User oAuth2User = (CustomOAuth2User) authentication.getPrincipal();
+            // 필요한 사용자 정보 추출
+            String email = oAuth2User.getEmail();
+            Long memberId = oAuth2User.getMemberId();
 
-        // 필요한 사용자 정보 추출
-        String email = oAuth2User.getEmail();
-        Long memberId = oAuth2User.getMemberId();
+            // DB에서 회원 조회
+            Member member = memberRepository.findById(memberId)
+                    .orElseThrow(() -> {
+                        return new IllegalStateException("Member not found: " + memberId);
+                    });
 
-        // DB에서 회원 조회
-        Member member = memberRepository.findById(memberId)
-                .orElseThrow(() -> {
-                    return new IllegalStateException("Member not found: " + memberId);
-                });
+            // JWT 토큰 생성
+            TokenResponse tokenResponse = jwtProvider.createToken(member);
 
-        // JWT 토큰 생성
-        TokenResponse tokenResponse = jwtProvider.createToken(member);
+            String refreshToken = tokenResponse.refreshToken();
 
-        String accessToken = tokenResponse.accessToken();
-        String refreshToken = tokenResponse.refreshToken();
+            // Redis에 refresh token 저장 (키: 이메일)
+            redisClient.setValue(email, refreshToken, refreshTokenExpirationTime);
 
-        // Redis에 refresh token 저장 (키: 이메일)
-        redisClient.setValue(email, refreshToken, refreshTokenExpirationTime);
+            // ApiResponse 래핑
+            ApiResponse<TokenResponse> apiResponse = ApiResponse.success(tokenResponse);
 
-        // ApiResponse 래핑
-        ApiResponse<TokenResponse> apiResponse = ApiResponse.success(tokenResponse);
-
-        // JSON으로 쓰기
-        response.setContentType("application/json;charset=UTF-8");
-        response.getWriter().write(objectMapper.writeValueAsString(apiResponse));
+            // JSON으로 쓰기
+            response.setContentType("application/json;charset=UTF-8");
+            response.getWriter().write(objectMapper.writeValueAsString(apiResponse));
+        }
+        catch (IOException e) {
+            throw new CoreException(GlobalErrorType.OAUTH_ERROR);
+        }
     }
 }

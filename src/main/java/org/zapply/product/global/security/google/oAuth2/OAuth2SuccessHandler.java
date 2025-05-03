@@ -15,7 +15,6 @@ import org.zapply.product.domain.user.entity.Member;
 import org.zapply.product.domain.user.repository.MemberRepository;
 import org.zapply.product.global.apiPayload.response.ApiResponse;
 import org.zapply.product.global.redis.RedisClient;
-import org.zapply.product.global.security.google.MemberLoginResponseDto;
 import org.zapply.product.global.security.jwt.JwtProvider;
 
 import java.io.IOException;

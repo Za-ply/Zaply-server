@@ -1,6 +1,7 @@
 package org.zapply.product.domain.user.service;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.zapply.product.domain.user.entity.Account;
@@ -13,20 +14,28 @@ import org.zapply.product.global.redis.RedisClient;
 import org.zapply.product.global.security.facebook.FacebookClient;
 import org.zapply.product.global.security.facebook.FacebookProfile;
 import org.zapply.product.global.security.facebook.FacebookToken;
+import org.zapply.product.global.security.threads.ThreadsClient;
+import org.zapply.product.global.security.threads.ThreadsProfile;
+import org.zapply.product.global.security.threads.ThreadsToken;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Base64;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class AccountService {
     private final AccountRepository accountRepository;
     private final RedisClient redisClient;
     private final FacebookClient facebookClient;
+    private final ThreadsClient threadsClient;
 
     @Value("${spring.security.oauth2.client.registration.facebook.redirect-uri}")
     private String facebookRedirectUrl;
+
+    @Value("${spring.security.oauth2.client.registration.threads.redirect-uri}")
+    private String threadsRedirectUrl;
 
 
     /**
@@ -68,6 +77,43 @@ public class AccountService {
         // Redis에 값 저장 (60일동안 유지)
         redisClient.setValue(redisKey, longFacebookAccessToken.accessToken(), 5184000L);
 
+        return redisKey;
+    }
+
+    /**
+     * 스레드 계정 연동
+     * @param code
+     * @param member
+     * @return Redis Key
+     */
+    public String linkThreads(String code, Member member){
+        // 스레드로 액세스 토큰 요청하기
+        ThreadsToken shortThreadsToken = threadsClient.getThreadsAccessToken(code, threadsRedirectUrl);
+
+        // 스레드에서 장기 액세스 토큰 요청하기
+        ThreadsToken longThreadsToken = threadsClient.getLongLivedToken(shortThreadsToken.accessToken());
+
+        // 스레드에 있는 사용자 정보 반환
+        ThreadsProfile profile = threadsClient.getThreadsProfile(longThreadsToken.accessToken());
+
+        // 반환된 정보의 username 추출, redis key 생성
+        String redisKey = "threads:" + generateRedisKey(member.getId(), profile.username());
+
+        //bussiness logic: account 정보가 이미 있다면 확인 후 해당 account 정보를 반환하고, 없다면 새로운 account 정보를 생성하여 반환
+        Account account = accountRepository.findByAccountNameAndAccountTypeAndMember(profile.username(), SNSType.THREADS, member)
+                .orElseGet(() -> {
+                    Account newAccount = Account.builder()
+                            .accountName(profile.username())
+                            .email("")
+                            .accountType(SNSType.THREADS)
+                            .tokenKey(redisKey)
+                            .member(member)
+                            .build();
+                    return accountRepository.save(newAccount);
+                });
+
+        // Redis에 값 저장 (60일동안 유지)
+        redisClient.setValue(redisKey, longThreadsToken.accessToken(), 5184000L);
         return redisKey;
     }
 

@@ -1,4 +1,4 @@
-package org.zapply.product.global.security.google.oAuth2;
+package org.zapply.product.global.security.oAuth2;
 
 import lombok.Getter;
 import org.springframework.security.core.GrantedAuthority;

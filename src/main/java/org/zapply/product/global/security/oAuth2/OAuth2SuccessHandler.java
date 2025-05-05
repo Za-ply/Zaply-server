@@ -1,7 +1,6 @@
-package org.zapply.product.global.security.google.oAuth2;
+package org.zapply.product.global.security.oAuth2;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -47,7 +46,7 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
             // DB에서 회원 조회
             Member member = memberRepository.findById(memberId)
                     .orElseThrow(() -> {
-                        return new IllegalStateException("Member not found: " + memberId);
+                        return new CoreException(GlobalErrorType.MEMBER_NOT_FOUND);
                     });
 
             // JWT 토큰 생성

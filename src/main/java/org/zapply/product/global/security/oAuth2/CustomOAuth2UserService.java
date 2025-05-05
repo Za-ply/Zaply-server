@@ -1,4 +1,4 @@
-package org.zapply.product.global.security.google.oAuth2;
+package org.zapply.product.global.security.oAuth2;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

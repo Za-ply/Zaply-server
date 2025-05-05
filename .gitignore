@@ -45,4 +45,6 @@ out/
 ### QueryDSL ###
 /src/main/generated
 
-
+/src/main/resources/application-swagger.yml
+/src/main/resources/application-cloud.yml
+/src/main/resources/application-oauth.yml

@@ -58,6 +58,9 @@ dependencies {
 
 	// swagger 설정
 	implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.5.0'
+
+	// coolSMS
+	implementation 'net.nurigo:sdk:4.3.0'
 }
 
 tasks.named('test') {

@@ -18,15 +18,18 @@ public class SmsService{
     private final SMSClient smsClient;
     private final RedisClient redisClient;
 
+    // OTP 유효시간 5분
+    private static final long OTP_EXPIRATION_MILLIS = 5 * 60_000L;
     private static final SecureRandom secureRandom = new SecureRandom();
+
 
     public void SendSms(SmsRequest smsRequestDto) {
         String phoneNum = smsRequestDto.phoneNum();
 
         String certificationCode = String.format("%06d", secureRandom.nextInt(1000000));
 
-        smsClient.sendSMS(phoneNum, certificationCode); // SMS 인증 유틸리티를 사용하여 SMS 발송
-        redisClient.setValue(phoneNum, certificationCode,60000L * 5);
+        smsClient.sendSMS(phoneNum, certificationCode);
+        redisClient.setValue(phoneNum, certificationCode,OTP_EXPIRATION_MILLIS);
     }
 
     public String certificate(CertificateRequest certificateRequest) {

@@ -19,6 +19,7 @@ public enum GlobalErrorType implements ErrorType {
     ALREADY_EXIST_ACCOUNT(HttpStatus.BAD_REQUEST, "이미 존재하는 계정입니다."),
     EMAIL_NOT_FOUND(HttpStatus.BAD_REQUEST, "이메일이 존재하지 않습니다."),
     FACEBOOK_API_ERROR(HttpStatus.BAD_REQUEST, "페이스북 API 호출에 실패했습니다."),
+    THREADS_API_ERROR(HttpStatus.BAD_REQUEST, "스레드 API 호출에 실패했습니다."),
 
     //Redis
     REDIS_SET_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "Redis에 값을 저장하는 데 실패했습니다."),

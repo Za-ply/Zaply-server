@@ -31,9 +31,13 @@ public enum GlobalErrorType implements ErrorType {
     FORBIDDEN(HttpStatus.FORBIDDEN, "접근이 금지되었습니다."),
     UNAUTHORIZED(HttpStatus.UNAUTHORIZED, "인증되지 않은 사용자입니다."),
 
+    // OAuth
+    OAUTH_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "로그인 중 오류가 발생했습니다."),
+
     // CoolSMS
     SMS_UNAUTHENTICATED(HttpStatus.INTERNAL_SERVER_ERROR, "인증번호가 일치하지 않습니다."),
     ;
+  
     private final HttpStatus status;
 
     private final String message;

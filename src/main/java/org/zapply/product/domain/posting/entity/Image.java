@@ -6,7 +6,6 @@ import org.zapply.product.global.BaseTimeEntity;
 
 @Getter
 @Entity
-@Table(name = "tb_image")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Image extends BaseTimeEntity {
 

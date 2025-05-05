@@ -9,6 +9,8 @@ import org.zapply.product.global.apiPayload.exception.GlobalErrorType;
 import org.zapply.product.global.coolSMS.SMSClient;
 import org.zapply.product.global.redis.RedisClient;
 
+import java.security.SecureRandom;
+
 @Service
 @RequiredArgsConstructor
 public class SmsService{
@@ -16,9 +18,13 @@ public class SmsService{
     private final SMSClient smsClient;
     private final RedisClient redisClient;
 
+    private static final SecureRandom secureRandom = new SecureRandom();
+
     public void SendSms(SmsRequest smsRequestDto) {
         String phoneNum = smsRequestDto.phoneNum();
-        String certificationCode = Integer.toString((int)(Math.random() * (999999 - 100000 + 1)) + 100000); // 6자리 인증 코드를 랜덤으로 생성
+
+        String certificationCode = String.format("%06d", secureRandom.nextInt(1000000));
+
         smsClient.sendSMS(phoneNum, certificationCode); // SMS 인증 유틸리티를 사용하여 SMS 발송
         redisClient.setValue(phoneNum, certificationCode,60000L * 5);
     }

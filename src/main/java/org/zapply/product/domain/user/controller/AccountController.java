@@ -22,4 +22,10 @@ public class AccountController {
     public ApiResponse<?> signInWithGoogle(@RequestParam("code") String code, @AuthenticationPrincipal AuthDetails authDetails) {
         return ApiResponse.success(accountService.linkFacebook(code, authDetails.getMember()));
     }
+
+    @PostMapping("/threads/link")
+    @Operation(summary = "스레드 계정 연동", description = "스레드 계정 연동")
+    public ApiResponse<?> signInWithThreads(@RequestParam("code") String code, @AuthenticationPrincipal AuthDetails authDetails) {
+        return ApiResponse.success(accountService.linkThreads(code, authDetails.getMember()));
+    }
 }

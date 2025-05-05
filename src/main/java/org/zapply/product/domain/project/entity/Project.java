@@ -10,7 +10,6 @@ import org.zapply.product.global.BaseTimeEntity;
 
 @Getter
 @Entity
-@Table(name = "tb_project")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Project extends BaseTimeEntity {
 

@@ -9,7 +9,6 @@ import org.zapply.product.domain.user.enumerate.SNSType;
 
 @Getter
 @Entity
-@Table(name = "tb_account")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Account {
 

@@ -6,9 +6,9 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.SQLDelete;
+import org.zapply.product.domain.user.enumerate.LoginType;
 import org.zapply.product.global.BaseTimeEntity;
 
-import java.time.LocalDate;
 
 @Getter
 @Entity
@@ -20,29 +20,36 @@ public class Member extends BaseTimeEntity {
     @Column(nullable = false, columnDefinition = "bigint")
     private Long id;
 
-    @Column(columnDefinition = "varchar(320)")
+    @Column(nullable = false, columnDefinition = "varchar(320)")
     private String email;
 
-    @Column(columnDefinition = "varchar(20)")
+    @Column(nullable = false, columnDefinition = "varchar(20)")
     private String phoneNumber;
 
-    @Column(columnDefinition = "varchar(30)")
+    @Column(nullable = false, columnDefinition = "varchar(30)")
     private String residentNumber;
 
-    @Column(columnDefinition = "varchar(320)")
+    @Column(nullable = false, columnDefinition = "varchar(320)")
     private String name;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 20)
+    private LoginType loginType = LoginType.DEFAULT;
+
+    @Embedded
+    private Agreement agreement;
 
     @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "credential_id", referencedColumnName = "id")
     private Credential credential;
 
     @Builder
-    public Member(String name, String email, String phoneNumber, String residentNumber, Credential credential) {
+    public Member(String name, String email, String phoneNumber, String residentNumber, Credential credential, Agreement agreement) {
         this.name = name;
         this.email = email;
-        this.name = name;
         this.phoneNumber = phoneNumber;
         this.residentNumber = residentNumber;
         this.credential = credential;
+        this.agreement = agreement;
     }
 }

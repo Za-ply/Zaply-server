@@ -2,11 +2,11 @@ package org.zapply.product.domain.user.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.zapply.product.domain.user.dto.request.AuthRequest;
 import org.zapply.product.domain.user.dto.request.SignInRequest;
@@ -31,13 +31,13 @@ public class AuthController {
 
     @PostMapping("/sign-up")
     @Operation(summary = "회원가입", description = "사용자의 정보 입력 후 회원가입")
-    public ApiResponse<MemberResponse> signUp(@Validated @RequestBody AuthRequest authRequest) {
+    public ApiResponse<MemberResponse> signUp(@Valid @RequestBody AuthRequest authRequest) {
         return ApiResponse.success(authService.signUp(authRequest));
     }
 
     @PostMapping("/sign-in")
     @Operation(summary = "로그인", description = "로그인 기능")
-    public ApiResponse<TokenResponse> signIn(@Validated @RequestBody SignInRequest signInRequest) {
+    public ApiResponse<TokenResponse> signIn(@Valid @RequestBody SignInRequest signInRequest) {
         return ApiResponse.success(authService.signIn(signInRequest));
     }
 
@@ -56,5 +56,11 @@ public class AuthController {
     public ApiResponse<TokenResponse> recreate(HttpServletRequest request, @AuthenticationPrincipal AuthDetails authDetails) {
         String token = request.getHeader(tokenHeader);
         return ApiResponse.success(authService.recreate(token, authDetails.getMember()));
+    }
+
+    @GetMapping("/email/duplicate")
+    @Operation(summary = "이메일 중복 확인", description = "이메일 중복 확인. true - 중복, false - 사용 가능")
+    public ApiResponse<Boolean> checkEmailDuplicate(@RequestParam("email") String email) {
+        return ApiResponse.success(authService.checkEmailDuplicate(email));
     }
 }

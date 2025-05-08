@@ -10,6 +10,7 @@ import org.zapply.product.domain.user.dto.response.TokenResponse;
 import org.zapply.product.domain.user.dto.response.MemberResponse;
 import org.zapply.product.domain.user.entity.Credential;
 import org.zapply.product.domain.user.entity.Member;
+import org.zapply.product.domain.user.repository.MemberRepository;
 import org.zapply.product.global.apiPayload.exception.CoreException;
 import org.zapply.product.global.apiPayload.exception.GlobalErrorType;
 import org.zapply.product.global.redis.RedisClient;
@@ -23,6 +24,7 @@ public class AuthService {
     private final CredentialService credentialService;
     private final JwtProvider jwtProvider;
     private final RedisClient redisClient;
+    private final MemberRepository memberRepository;
 
     @Value("${jwt.token.refresh-expiration-time}")
     private Long refreshTokenExpirationTime;
@@ -93,5 +95,17 @@ public class AuthService {
         }
 
         return jwtProvider.recreate(member, refreshToken);
+    }
+
+    /**
+     * 이메일 중복 확인 메서드
+     * @param email
+     * @return boolean
+     */
+    public boolean checkEmailDuplicate(String email) {
+        if (email == null || email.isEmpty()) {
+            throw new CoreException(GlobalErrorType.EMAIL_NOT_FOUND);
+        }
+        return memberRepository.existsByEmailAndDeletedAtIsNull(email);
     }
 }

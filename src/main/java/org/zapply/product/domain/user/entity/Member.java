@@ -8,6 +8,7 @@ import lombok.NoArgsConstructor;
 import org.hibernate.annotations.SQLDelete;
 import org.zapply.product.domain.user.enumerate.LoginType;
 import org.zapply.product.global.BaseTimeEntity;
+import org.zapply.product.global.security.jasypt.JasyptStringEncryptor;
 
 
 @Getter
@@ -26,7 +27,8 @@ public class Member extends BaseTimeEntity {
     @Column(nullable = false, columnDefinition = "varchar(20)")
     private String phoneNumber;
 
-    @Column(nullable = false, columnDefinition = "varchar(30)")
+    @Column(nullable = false, columnDefinition = "varchar(200)")
+    @Convert(converter = JasyptStringEncryptor.class)
     private String residentNumber;
 
     @Column(nullable = false, columnDefinition = "varchar(320)")

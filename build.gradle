@@ -61,6 +61,9 @@ dependencies {
 
 	// coolSMS
 	implementation 'net.nurigo:sdk:4.3.0'
+
+	// jasypt
+	implementation 'com.github.ulisesbocchio:jasypt-spring-boot-starter:3.0.5'
 }
 
 tasks.named('test') {

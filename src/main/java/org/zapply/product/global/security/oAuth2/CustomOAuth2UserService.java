@@ -9,6 +9,7 @@ import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
 import org.zapply.product.domain.user.entity.Member;
+import org.zapply.product.domain.user.enumerate.LoginType;
 import org.zapply.product.domain.user.repository.MemberRepository;
 
 import java.util.Map;
@@ -50,6 +51,7 @@ public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
                     return memberRepository.save(
                             Member.builder()
                                     .name(name)
+                                    .loginType(LoginType.GOOGLE)
                                     .email(email)
                                     .build()
                     );

@@ -3,10 +3,8 @@ package org.zapply.product.domain.user.controller;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+import org.zapply.product.domain.user.enumerate.SNSType;
 import org.zapply.product.domain.user.service.AccountService;
 import org.zapply.product.global.apiPayload.response.ApiResponse;
 import org.zapply.product.global.security.AuthDetails;
@@ -27,5 +25,11 @@ public class AccountController {
     @Operation(summary = "스레드 계정 연동", description = "스레드 계정 연동")
     public ApiResponse<?> signInWithThreads(@RequestParam("code") String code, @AuthenticationPrincipal AuthDetails authDetails) {
         return ApiResponse.success(accountService.linkThreads(code, authDetails.getMember()));
+    }
+
+    @GetMapping("/token")
+    @Operation(summary = "사용자의 액세스 토큰 조회", description = "토큰 조회")
+    public ApiResponse<?> getToken(@AuthenticationPrincipal AuthDetails authDetails, @RequestParam("accountType") SNSType accountType) {
+        return ApiResponse.success(accountService.getAccessToken(authDetails.getMember(), accountType));
     }
 }

@@ -31,6 +31,7 @@ jobs:
           echo "${{ secrets.APPLICATION_PROPERTIES_OAUTH }}" > ./src/main/resources/application-oauth.yml
           echo "${{ secrets.APPLICATION_PROPERTIES_CLOUD }}" > ./src/main/resources/application-cloud.yml
           echo "${{ secrets.APPLICATION_PROPERTIES_SWAGGER }}" > ./src/main/resources/application-swagger.yml
+          echo "${{ secrets.APPLICATION_PROPERTIES_ACTUATOR }}" > ./src/main/resources/application-actuator.yml
           
       # 4. 도커 빌드 환경 설정 (buildx 설치)
       - name: Set up Docker Buildx

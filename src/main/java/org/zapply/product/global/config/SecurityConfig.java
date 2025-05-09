@@ -94,6 +94,13 @@ public class SecurityConfig {
                                 "/v1/sms/**"
                         ).permitAll()
 
+                        .requestMatchers(
+                                "/actuator/**",
+                                "/actuator/prometheus",
+                                "/actuator/health/**",
+                                "/actuator/info"
+                        ).permitAll()
+
                         // LoadBalancer용 헬스 체크
                         .requestMatchers(HttpMethod.GET,"/v1/healthcheck").permitAll()
                         .requestMatchers("/v1/auth/**","/v1/user/**").permitAll()

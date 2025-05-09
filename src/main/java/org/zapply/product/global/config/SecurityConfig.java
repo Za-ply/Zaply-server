@@ -89,6 +89,11 @@ public class SecurityConfig {
                                 "/v1/account/facebook/link"
                         ).permitAll()
 
+                        // 문자 인증
+                        .requestMatchers(
+                                "/v1/sms/**"
+                        ).permitAll()
+
                         // LoadBalancer용 헬스 체크
                         .requestMatchers(HttpMethod.GET,"/v1/healthcheck").permitAll()
                         .requestMatchers("/v1/auth/**","/v1/user/**").permitAll()

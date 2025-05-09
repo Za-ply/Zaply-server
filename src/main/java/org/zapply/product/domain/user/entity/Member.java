@@ -24,14 +24,14 @@ public class Member extends BaseTimeEntity {
     @Column(nullable = false, columnDefinition = "varchar(320)")
     private String email;
 
-    @Column(nullable = false, columnDefinition = "varchar(20)")
+    @Column(columnDefinition = "varchar(20)")
     private String phoneNumber;
 
-    @Column(nullable = false, columnDefinition = "varchar(200)")
+    @Column(columnDefinition = "varchar(200)")
     @Convert(converter = JasyptStringEncryptor.class)
     private String residentNumber;
 
-    @Column(nullable = false, columnDefinition = "varchar(320)")
+    @Column(columnDefinition = "varchar(320)")
     private String name;
 
     @Enumerated(EnumType.STRING)
@@ -46,12 +46,13 @@ public class Member extends BaseTimeEntity {
     private Credential credential;
 
     @Builder
-    public Member(String name, String email, String phoneNumber, String residentNumber, Credential credential, Agreement agreement) {
+    public Member(String name, String email, String phoneNumber, String residentNumber, Credential credential, Agreement agreement, LoginType loginType) {
         this.name = name;
         this.email = email;
         this.phoneNumber = phoneNumber;
         this.residentNumber = residentNumber;
         this.credential = credential;
         this.agreement = agreement;
+        this.loginType = LoginType.DEFAULT;
     }
 }

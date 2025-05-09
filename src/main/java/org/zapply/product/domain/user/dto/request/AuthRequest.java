@@ -5,6 +5,7 @@ import jakarta.validation.constraints.NotNull;
 import org.zapply.product.domain.user.entity.Agreement;
 import org.zapply.product.domain.user.entity.Credential;
 import org.zapply.product.domain.user.entity.Member;
+import org.zapply.product.domain.user.enumerate.LoginType;
 
 public record AuthRequest(
 
@@ -57,6 +58,7 @@ public record AuthRequest(
                 .residentNumber(residentNumber)
                 .credential(credential)
                 .agreement(toAgreement())
+                .loginType(LoginType.DEFAULT)
                 .build();
     }
 }

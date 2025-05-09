@@ -7,6 +7,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.zapply.product.domain.user.enumerate.SNSType;
 
+import java.time.LocalDateTime;
+
 @Getter
 @Entity
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -30,16 +32,24 @@ public class Account {
     @Column
     private String email;
 
+    @Column(columnDefinition = "TIMESTAMP")
+    private LocalDateTime tokenExpireAt;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "member_id", nullable = false)
     private Member member;
 
     @Builder
-    public Account(String accountName, SNSType accountType, String tokenKey, Member member, String email) {
+    public Account(String accountName, SNSType accountType, String tokenKey, Member member, String email, LocalDateTime tokenExpireAt) {
         this.accountName = accountName;
         this.accountType = accountType;
         this.tokenKey = tokenKey;
         this.member = member;
         this.email = email;
+        this.tokenExpireAt = tokenExpireAt;
+    }
+
+    public void updateTokenExpireAt(LocalDateTime tokenExpireAt) {
+        this.tokenExpireAt = tokenExpireAt;
     }
 }

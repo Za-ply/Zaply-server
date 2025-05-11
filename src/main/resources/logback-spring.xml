@@ -1,0 +1,28 @@
+<configuration>
+
+    <!-- 콘솔에도 출력 -->
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+            <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <!-- Loki 전용 appender -->
+    <appender name="LOKI" class="com.github.loki4j.logback.Loki4jAppender">
+        <lokiConfig>
+            <!-- 로컬에서 실행 중인 Compose의 Loki로 전송 -->
+            <url>http://loki:3100/loki/api/v1/push</url>
+        </lokiConfig>
+        <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+        <!-- 필요 시 batchSize, timeout 등 추가 설정 가능 -->
+    </appender>
+
+    <!-- 루트 로거에 두 appender 연결 -->
+    <root level="INFO">
+        <appender-ref ref="CONSOLE" />
+        <appender-ref ref="LOKI" />
+    </root>
+
+</configuration>

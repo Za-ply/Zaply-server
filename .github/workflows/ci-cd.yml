@@ -81,8 +81,8 @@ jobs:
             docker pull $DOCKER_USERNAME/zaply:latest
           
             # 컨테이너 실행
-            docker run -d --name zaply --network root_zaply_network --network monitoring_loki-net -p 8080:8080 $DOCKER_USERNAME/zaply:latest
-
+            docker run -d --name zaply --network root_zaply_network -p 8080:8080 $DOCKER_USERNAME/zaply:latest
+            docker network connect monitoring_loki-net zaply
           EOF
           
           rm ncp_key.pem

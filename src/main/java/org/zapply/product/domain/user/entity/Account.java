@@ -39,14 +39,19 @@ public class Account {
     @JoinColumn(name = "member_id", nullable = false)
     private Member member;
 
+    @Column
+    private String userId;
+
     @Builder
-    public Account(String accountName, SNSType accountType, String tokenKey, Member member, String email, LocalDateTime tokenExpireAt) {
+    public Account(String accountName, SNSType accountType, String tokenKey, Member member, String email,
+                   LocalDateTime tokenExpireAt, String userId) {
         this.accountName = accountName;
         this.accountType = accountType;
         this.tokenKey = tokenKey;
         this.member = member;
         this.email = email;
         this.tokenExpireAt = tokenExpireAt;
+        this.userId = userId;
     }
 
     public void updateTokenExpireAt(LocalDateTime tokenExpireAt) {

@@ -87,6 +87,7 @@ public class AccountService {
                             .tokenKey(key)
                             .member(member)
                             .tokenExpireAt(LocalDateTime.now().plusDays(60))
+                            .userId(facebookProfile.id())
                             .build();
                     Account savedAccount = accountRepository.save(newAccount);
                     // 새 계정을 Vault에 저장
@@ -135,6 +136,7 @@ public class AccountService {
                             .tokenKey(key)
                             .member(member)
                             .tokenExpireAt(LocalDateTime.now().plusDays(60))
+                            .userId(profile.id())
                             .build();
                     Account savedAccount = accountRepository.save(newAccount);
                     // Vault에 토큰 저장

@@ -2,9 +2,10 @@ auth_enabled: false
 
 server:
   http_listen_port: 3100
+  grpc_listen_port: 9095
 
 common:
-  instance_addr: localhost
+  instance_addr: loki
   path_prefix: /loki
   storage:
     filesystem:

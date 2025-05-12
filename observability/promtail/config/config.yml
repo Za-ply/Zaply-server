@@ -11,7 +11,7 @@ clients:
 scrape_configs:
   - job_name: springboot-logs
     static_configs:
-      - targets: ['localhost']
+      - targets: ['host.docker.internal'] # 이거 안쓴다네요?
         labels:
           job: spring-boot
           __path__: /var/log/springboot/*.log   # 마운트된 로그 디렉토리

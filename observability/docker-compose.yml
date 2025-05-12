@@ -6,6 +6,7 @@ services:
     container_name: loki
     ports:
       - '3100:3100'             # 호스트 3100 → 컨테이너 3100
+      - '9095:9095'             # gRPC ingester/distributor
     volumes:
       - ./loki/config:/etc/loki # Loki 설정 파일을 컨테이너에 마운트
     networks:

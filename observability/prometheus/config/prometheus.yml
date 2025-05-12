@@ -7,7 +7,7 @@ scrape_configs:
   - job_name: 'springboot'
     metrics_path: '/actuator/prometheus'
     static_configs:
-      - targets: ['host.docker.internal:8080']  # 호스트에서 띄운 Spring Boot
+      - targets: ['zaply:8080']  # 호스트에서 띄운 Spring Boot
 
   # ② Prometheus 자체 메트릭
   - job_name: 'prometheus'

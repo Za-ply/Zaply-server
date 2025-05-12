@@ -6,9 +6,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.vault.core.VaultTemplate;
 import org.springframework.vault.support.VaultResponse;
+import org.zapply.product.global.security.jasypt.JasyptStringEncryptor;
 
-import java.nio.charset.StandardCharsets;
-import java.util.Base64;
 import java.util.Map;
 
 @Component
@@ -17,25 +16,25 @@ public class VaultClient {
 
     private final VaultTemplate vaultTemplate;
     private final ObjectMapper objectMapper;
+    private final JasyptStringEncryptor jasyptStringEncryptor;
 
     /**
-     * Vault에 시크릿을 저장 (Base64 인코딩)
+     * Vault에 시크릿을 저장 (AES256 암호화)
      * @param path 저장할 경로
      * @param key 키
-     * @param value
+     * @param value 시크릿 값
      */
     public void saveSecret(String path, String key, String value) {
-        String encodedValue = Base64.getEncoder().encodeToString(value.getBytes(StandardCharsets.UTF_8));
-
+        String encryptedValue = jasyptStringEncryptor.encrypt(value);
         String fullPath = "secret/data/" + path;
-        vaultTemplate.write(fullPath, Map.of("data", Map.of(key, encodedValue)));
+        vaultTemplate.write(fullPath, Map.of("data", Map.of(key, encryptedValue)));
     }
 
     /**
-     * Vault에서 시크릿을 가져옴 (Base64 디코딩)
+     * Vault에서 시크릿을 가져옴 (AES256 복호화)
      * @param path 시크릿 경로
      * @param key 키
-     * @return secret 값
+     * @return 복호화된 시크릿 값
      */
     public String getSecret(String path, String key) {
         String fullPath = "secret/data/" + path;
@@ -53,7 +52,6 @@ public class VaultClient {
             return null;
         }
 
-        byte[] decodedBytes = Base64.getDecoder().decode(valueNode.asText());
-        return new String(decodedBytes, StandardCharsets.UTF_8);
+        return jasyptStringEncryptor.decrypt(valueNode.asText());
     }
 }

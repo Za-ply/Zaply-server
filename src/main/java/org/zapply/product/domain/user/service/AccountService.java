@@ -10,12 +10,12 @@ import org.zapply.product.domain.user.enumerate.SNSType;
 import org.zapply.product.domain.user.repository.AccountRepository;
 import org.zapply.product.global.apiPayload.exception.CoreException;
 import org.zapply.product.global.apiPayload.exception.GlobalErrorType;
-import org.zapply.product.global.security.facebook.FacebookClient;
-import org.zapply.product.global.security.facebook.FacebookProfile;
-import org.zapply.product.global.security.facebook.FacebookToken;
-import org.zapply.product.global.security.threads.ThreadsClient;
-import org.zapply.product.global.security.threads.ThreadsProfile;
-import org.zapply.product.global.security.threads.ThreadsToken;
+import org.zapply.product.global.facebook.FacebookClient;
+import org.zapply.product.global.facebook.FacebookProfile;
+import org.zapply.product.global.facebook.FacebookToken;
+import org.zapply.product.global.threads.ThreadsClient;
+import org.zapply.product.global.threads.ThreadsProfile;
+import org.zapply.product.global.threads.ThreadsToken;
 import org.zapply.product.global.vault.VaultClient;
 
 import java.security.MessageDigest;

@@ -1,4 +1,4 @@
-package org.zapply.product.global.security.threads;
+package org.zapply.product.global.threads;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;

@@ -6,15 +6,20 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
+import org.zapply.product.domain.user.entity.Member;
+import org.zapply.product.domain.user.repository.MemberRepository;
 import org.zapply.product.global.apiPayload.exception.CoreException;
 import org.zapply.product.global.apiPayload.exception.GlobalErrorType;
 
 import java.io.IOException;
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 
 @Service
 @RequiredArgsConstructor
 public class FacebookClient {
 
+    private final MemberRepository memberRepository;
     @Value("${spring.security.oauth2.client.registration.facebook.client-id}")
     private String clientId;
 
@@ -27,8 +32,24 @@ public class FacebookClient {
     @Value("${spring.security.oauth2.client.provider.facebook.user-info-uri}")
     private String userInfoUrl;
 
+    @Value("${spring.security.oauth2.client.registration.facebook.redirect-uri}")
+    private String redirectUri;
+
     private final ObjectMapper objectMapper;
     private final RestClient restClient = RestClient.create();
+
+
+    /**
+     * 페이스북 로그인 URL 생성
+     * @return String
+     */
+    public String buildAuthorizationUri(Member member) {
+        String uri = redirectUri + "?state=" + member.getId();
+
+        return "https://www.facebook.com/v22.0/dialog/oauth?client_id=" + clientId +
+                "&redirect_uri=" + uri +
+                "&scope=email";
+    }
 
     /**
      * 페이스북으로부터 받은 인가코드를 통해 액세스 토큰 요청하기
@@ -37,15 +58,19 @@ public class FacebookClient {
      * @return FacebookToken
      */
     public FacebookToken getFacebookAccessToken(String code, String redirectUri) {
+        String decodedCode = URLDecoder.decode(code, StandardCharsets.UTF_8);
+
+        String cleanCode = decodedCode.split("#")[0];  // code 이후의 #_=_ 부분을 분리
+
         String response = restClient.get()
                 .uri(uriBuilder -> uriBuilder
                         .scheme("https")
                         .host("graph.facebook.com")
-                        .path(accessTokenUrl)
+                        .path("/oauth/access_token")
                         .queryParam("client_id", clientId)
                         .queryParam("redirect_uri", redirectUri)
                         .queryParam("client_secret", clientSecret)
-                        .queryParam("code", code)
+                        .queryParam("code", cleanCode)
                         .build())
                 .retrieve()
                 .body(String.class);
@@ -91,7 +116,7 @@ public class FacebookClient {
                 .uri(uriBuilder -> uriBuilder
                         .scheme("https")
                         .host("graph.facebook.com")
-                        .path(accessTokenUrl)
+                        .path("/oauth/access_token")
                         .queryParam("grant_type", "fb_exchange_token")
                         .queryParam("client_id", clientId)
                         .queryParam("client_secret", clientSecret)

@@ -3,9 +3,9 @@ package org.zapply.product.global.threads;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.*;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
+import org.springframework.web.client.RestClient;
 import org.springframework.web.util.UriComponentsBuilder;
 import org.zapply.product.domain.posting.dto.request.ThreadsPostingRequest;
 import org.zapply.product.domain.posting.dto.response.ThreadsPostingResponse;
@@ -32,13 +32,15 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class ThreadsPostingClient {
 
-    private final ObjectMapper objectMapper;
-    private final RestTemplate restTemplate = new RestTemplate();
     private static final String THREADS_API_BASE = "https://graph.threads.net/v1.0";
+
+    private final ObjectMapper objectMapper;
     private final AccountRepository accountRepository;
     private final AccountService accountService;
     private final ProjectRepository projectRepository;
     private final PostingRepository postingRepository;
+
+    private final RestClient restClient = RestClient.create();
 
     /**
      * Threads 계정 불러오기
@@ -51,7 +53,7 @@ public class ThreadsPostingClient {
     }
 
     /**
-     * member의 threads 액세스 토큰 불러오기
+     * 스레드 API에 요청하기 위한 액세스 토큰 가져오기
      * @param member
      * @return accessToken
      */
@@ -60,35 +62,31 @@ public class ThreadsPostingClient {
     }
 
     /**
-     * Threads API에 요청하기
+     * 스레드 API에 POST 요청하기
      * @param uri
-     * @return Response body
+     * @return response
      */
     private Map<String, Object> postToThreadsApi(URI uri) {
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
-        ResponseEntity<Map> response = restTemplate.exchange(
-                uri,
-                HttpMethod.POST,
-                new HttpEntity<>(headers),
-                Map.class
-        );
-        Map<String, Object> body = response.getBody();
-        if (body == null || body.get("id") == null) {
-            throw new CoreException(GlobalErrorType.THREADS_CREATION_ID_NOT_FOUND);
+        try {
+            return restClient.post()
+                    .uri(uri)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .retrieve()
+                    .body(Map.class);
+        } catch (Exception e) {
+            throw new CoreException(GlobalErrorType.THREADS_API_ERROR);
         }
-        return body;
     }
 
     /**
-     * Threads 미디어 컨테이너 만들기
+     * 스레드 미디어 컨테이너 생성하기
      * @param mediaType
      * @param mediaUrl
      * @param accessToken
      * @param userId
      * @param isCarouselItem
      * @param text
-     * @return creationId
+     * @return mediaId
      */
     private String createMediaContainer(String mediaType, String mediaUrl, String accessToken, String userId, boolean isCarouselItem, String text) {
         UriComponentsBuilder builder = UriComponentsBuilder
@@ -96,6 +94,7 @@ public class ThreadsPostingClient {
                 .queryParam("media_type", mediaType)
                 .queryParam("image_url", mediaUrl)
                 .queryParam("access_token", accessToken);
+
         if (isCarouselItem) {
             builder.queryParam("is_carousel_item", "true");
         } else if (text != null) {
@@ -107,11 +106,11 @@ public class ThreadsPostingClient {
     }
 
     /**
-     * Threads 미디어 컨테이너 발행하기
+     * 스레드 미디어 컨테이너 게시하기
      * @param creationId
      * @param accessToken
      * @param userId
-     * @return
+     * @return publishedId
      */
     private String publishMediaContainer(String creationId, String accessToken, String userId) {
         URI uri = UriComponentsBuilder
@@ -121,10 +120,12 @@ public class ThreadsPostingClient {
                 .build()
                 .encode()
                 .toUri();
+
         return String.valueOf(postToThreadsApi(uri).get("id"));
     }
+
     /**
-     * Posting을 저장하고 응답 객체를 생성
+     * 스레드 게시물 저장하기
      * @param mediaId
      * @param projectId
      * @param mediaType
@@ -135,6 +136,7 @@ public class ThreadsPostingClient {
     private ThreadsPostingResponse savePosting(String mediaId, Long projectId, String mediaType, String media, String text) {
         Project project = projectRepository.findById(projectId)
                 .orElseThrow(() -> new CoreException(GlobalErrorType.PROJECT_NOT_FOUND));
+
         Posting posting = Posting.builder()
                 .postingLink("")
                 .postingTitle("")
@@ -144,15 +146,16 @@ public class ThreadsPostingClient {
                 .mediaId(mediaId)
                 .build();
         postingRepository.save(posting);
+
         return ThreadsPostingResponse.of(posting, mediaType, media, text);
     }
 
     /**
-     * Threads 미디어 단일 발행하기
+     * 스레드 미디어 단일 게시물 생성하기
      * @param member
      * @param request
      * @param projectId
-     * @return threadsPostingResponse
+     * @return ThreadsPostingResponse
      */
     public ThreadsPostingResponse createSingleMedia(Member member, ThreadsPostingRequest request, Long projectId) {
         try {
@@ -167,11 +170,11 @@ public class ThreadsPostingClient {
     }
 
     /**
-     * Threads 미디어 케러셀 발행하기
+     * 스레드 미디어 캐러셀 게시물 생성하기
      * @param member
      * @param request
      * @param projectId
-     * @return threadsPostingResponse
+     * @return ThreadsPostingResponse
      */
     public ThreadsPostingResponse createCarouselMedia(Member member, ThreadsPostingRequest request, Long projectId) {
         try {
@@ -198,7 +201,6 @@ public class ThreadsPostingClient {
             String publishedId = publishMediaContainer(containerId, accessToken, account.getUserId());
 
             return savePosting(publishedId, projectId, request.mediaType(), request.media().getFirst(), request.text());
-
         } catch (Exception e) {
             throw new CoreException(GlobalErrorType.THREADS_API_ERROR);
         }

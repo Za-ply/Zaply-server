@@ -39,7 +39,10 @@ public enum GlobalErrorType implements ErrorType {
     OAUTH_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "로그인 중 오류가 발생했습니다."),
 
     // CoolSMS
-    SMS_UNAUTHENTICATED(HttpStatus.INTERNAL_SERVER_ERROR, "인증번호가 일치하지 않습니다.");
+    SMS_UNAUTHENTICATED(HttpStatus.INTERNAL_SERVER_ERROR, "인증번호가 일치하지 않습니다."),
+
+    // Scheduler
+    SCHEDULED_JOB_EXECUTION_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "예약된 작업 실행 중 오류가 발생했습니다."),
     ;
 
     private final HttpStatus status;

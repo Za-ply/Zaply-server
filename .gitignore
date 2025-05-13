@@ -49,3 +49,4 @@ out/
 /src/main/resources/application-cloud.yml
 /src/main/resources/application-oauth.yml
 /src/main/resources/application-actuator.yml
+/src/main/resources/logback-spring.xml

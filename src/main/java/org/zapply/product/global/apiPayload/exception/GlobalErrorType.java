@@ -46,10 +46,6 @@ public enum GlobalErrorType implements ErrorType {
     // CoolSMS
     SMS_UNAUTHENTICATED(HttpStatus.INTERNAL_SERVER_ERROR, "인증번호가 일치하지 않습니다."),
 
-    // Scheduler
-    SCHEDULED_JOB_EXECUTION_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "예약된 작업 실행 중 오류가 발생했습니다."),
-    SCHEDULED_JOB_NOT_FOUND(HttpStatus.NOT_FOUND, "예약된 작업을 찾을 수 없습니다."),
-
     // Vault
     VAULT_TOKEN_NOT_FOUND(HttpStatus.NOT_FOUND, "Vault에 토큰이 존재하지 않습니다."),
 

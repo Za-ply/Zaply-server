@@ -22,6 +22,8 @@ public enum GlobalErrorType implements ErrorType {
     EMAIL_NOT_FOUND(HttpStatus.BAD_REQUEST, "이메일이 존재하지 않습니다."),
     FACEBOOK_API_ERROR(HttpStatus.BAD_REQUEST, "페이스북 API 호출에 실패했습니다."),
     THREADS_API_ERROR(HttpStatus.BAD_REQUEST, "스레드 API 호출에 실패했습니다."),
+    ACCOUNT_TOKEN_KEY_NOT_FOUND(HttpStatus.NOT_FOUND, "계정의 토큰 키를 찾을 수 없습니다."),
+    SNS_TYPE_NOT_FOUND(HttpStatus.NOT_FOUND, "존재하지 않는 SNS 타입입니다."),
 
     //Redis
     REDIS_SET_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "Redis에 값을 저장하는 데 실패했습니다."),
@@ -39,7 +41,10 @@ public enum GlobalErrorType implements ErrorType {
     OAUTH_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "로그인 중 오류가 발생했습니다."),
 
     // CoolSMS
-    SMS_UNAUTHENTICATED(HttpStatus.INTERNAL_SERVER_ERROR, "인증번호가 일치하지 않습니다.");
+    SMS_UNAUTHENTICATED(HttpStatus.INTERNAL_SERVER_ERROR, "인증번호가 일치하지 않습니다."),
+
+    // Vault
+    VAULT_TOKEN_NOT_FOUND(HttpStatus.NOT_FOUND, "Vault에 토큰이 존재하지 않습니다."),
     ;
 
     private final HttpStatus status;

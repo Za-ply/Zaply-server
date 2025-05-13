@@ -72,8 +72,6 @@ public class AccountService {
         // business logic: account 정보가 이미 있다면 확인 후 해당 account 정보를 반환하고, 없다면 새로운 account 정보를 생성하여 반환
         Account account = accountRepository.findByEmailAndAccountTypeAndMember(email, SNSType.FACEBOOK, member)
                 .map(existingAccount -> {
-                    // 기존 계정이 있다면 Vault에서 토큰을 갱신해준다.
-                    vaultClient.saveSecret(facebookPath, key, longFacebookAccessToken.accessToken());
                     // 토큰 만료일 갱신
                     existingAccount.updateTokenExpireAt(LocalDateTime.now().plusDays(60));
                     return accountRepository.save(existingAccount);
@@ -89,11 +87,9 @@ public class AccountService {
                             .tokenExpireAt(LocalDateTime.now().plusDays(60))
                             .userId(facebookProfile.id())
                             .build();
-                    Account savedAccount = accountRepository.save(newAccount);
-                    // 새 계정을 Vault에 저장
-                    vaultClient.saveSecret(facebookPath, key, longFacebookAccessToken.accessToken());
-                    return savedAccount; // 새 계정 반환
+                    return accountRepository.save(newAccount);
                 });
+        vaultClient.saveSecret(facebookPath, key, longFacebookAccessToken.accessToken());
 
         return key;
     }
@@ -121,8 +117,6 @@ public class AccountService {
         //bussiness logic: account 정보가 이미 있다면 확인 후 해당 account 정보를 반환하고, 없다면 새로운 account 정보를 생성하여 반환
         Account account = accountRepository.findByAccountNameAndAccountTypeAndMember(profile.username(), SNSType.THREADS, member)
                 .map(existingAccount -> {
-                    // 기존 계정이 있다면 Vault에서 토큰을 갱신해준다.
-                    vaultClient.saveSecret(threadsPath, key, longThreadsToken.accessToken());
                     // 토큰 만료일 갱신
                     existingAccount.updateTokenExpireAt(LocalDateTime.now().plusDays(60));
                     return accountRepository.save(existingAccount);
@@ -138,12 +132,9 @@ public class AccountService {
                             .tokenExpireAt(LocalDateTime.now().plusDays(60))
                             .userId(profile.id())
                             .build();
-                    Account savedAccount = accountRepository.save(newAccount);
-                    // Vault에 토큰 저장
-                    vaultClient.saveSecret(threadsPath, key, longThreadsToken.accessToken());
-                    // 토큰 만료일 갱신
-                    return savedAccount;
+                    return accountRepository.save(newAccount);
                 });
+        vaultClient.saveSecret(threadsPath, key, longThreadsToken.accessToken());
 
         return key;
     }

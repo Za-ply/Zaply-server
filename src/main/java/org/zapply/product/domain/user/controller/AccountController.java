@@ -26,10 +26,4 @@ public class AccountController {
     public ApiResponse<?> signInWithThreads(@RequestParam("code") String code, @AuthenticationPrincipal AuthDetails authDetails) {
         return ApiResponse.success(accountService.linkThreads(code, authDetails.getMember()));
     }
-
-    @GetMapping("/token")
-    @Operation(summary = "사용자의 액세스 토큰 조회", description = "토큰 조회")
-    public ApiResponse<?> getToken(@AuthenticationPrincipal AuthDetails authDetails, @RequestParam("accountType") SNSType accountType) {
-        return ApiResponse.success(accountService.getAccessToken(authDetails.getMember(), accountType));
-    }
 }

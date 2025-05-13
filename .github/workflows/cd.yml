@@ -35,9 +35,6 @@ jobs:
           NCP_PASS:    ${{ secrets.NCP_PASSWORD }}
           DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
         run: |
-          echo "$NCP_PEM_KEY" > ncp_key.pem
-          chmod 400 ncp_key.pem
-          
           ssh -i ncp_key.pem -o StrictHostKeyChecking=no $NCP_USER@$NCP_HOST << EOF
           
             # 기존 컨테이너 중지 및 삭제

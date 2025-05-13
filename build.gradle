@@ -20,8 +20,17 @@ configurations {
 }
 
 repositories {
-	mavenCentral()
+    mavenCentral()
+    maven { url "https://repo.spring.io/release" }
 }
+
+dependencyManagement {
+    imports {
+        mavenBom "org.springframework.cloud:spring-cloud-dependencies:2023.0.1"
+    }
+}
+
+
 
 dependencies {
 	// spring boot
@@ -62,13 +71,17 @@ dependencies {
 	// coolSMS
 	implementation 'net.nurigo:sdk:4.3.0'
 
-	// jasypt
-	implementation 'com.github.ulisesbocchio:jasypt-spring-boot-starter:3.0.5'
+    // jasypt
+    implementation 'com.github.ulisesbocchio:jasypt-spring-boot-starter:3.0.5'
 
-	// monitoring
-	implementation 'org.springframework.boot:spring-boot-starter-actuator'
-	implementation 'io.micrometer:micrometer-registry-prometheus'
-	implementation 'com.github.loki4j:loki-logback-appender:1.6.0'
+    // monitoring
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
+    implementation 'io.micrometer:micrometer-registry-prometheus'
+    implementation 'com.github.loki4j:loki-logback-appender:1.6.0'
+
+    // hashicorp vault
+    implementation 'org.springframework.cloud:spring-cloud-starter-vault-config'
+    implementation 'org.springframework.vault:spring-vault-core'
 }
 
 tasks.named('test') {

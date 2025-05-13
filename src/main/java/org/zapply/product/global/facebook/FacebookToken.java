@@ -1,4 +1,4 @@
-package org.zapply.product.global.security.facebook;
+package org.zapply.product.global.facebook;
 
 public record FacebookToken(
         String accessToken

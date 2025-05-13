@@ -19,9 +19,12 @@ public enum GlobalErrorType implements ErrorType {
 
     // Account
     ALREADY_EXIST_ACCOUNT(HttpStatus.BAD_REQUEST, "이미 존재하는 계정입니다."),
+    ACCOUNT_NOT_FOUND(HttpStatus.NOT_FOUND, "존재하지 않는 계정입니다."),
     EMAIL_NOT_FOUND(HttpStatus.BAD_REQUEST, "이메일이 존재하지 않습니다."),
     FACEBOOK_API_ERROR(HttpStatus.BAD_REQUEST, "페이스북 API 호출에 실패했습니다."),
     THREADS_API_ERROR(HttpStatus.BAD_REQUEST, "스레드 API 호출에 실패했습니다."),
+    THREADS_CREATION_ID_NOT_FOUND(HttpStatus.NOT_FOUND, "스레드 미디어 컨테이너 ID를 찾을 수 없습니다."),
+    THREADS_MEDIA_NOT_READY(HttpStatus.BAD_REQUEST, "스레드 미디어가 준비되지 않았습니다."),
     ACCOUNT_TOKEN_KEY_NOT_FOUND(HttpStatus.NOT_FOUND, "계정의 토큰 키를 찾을 수 없습니다."),
     SNS_TYPE_NOT_FOUND(HttpStatus.NOT_FOUND, "존재하지 않는 SNS 타입입니다."),
 
@@ -45,7 +48,10 @@ public enum GlobalErrorType implements ErrorType {
 
     // Vault
     VAULT_TOKEN_NOT_FOUND(HttpStatus.NOT_FOUND, "Vault에 토큰이 존재하지 않습니다."),
-    ;
+
+
+    // Project
+    PROJECT_NOT_FOUND(HttpStatus.NOT_FOUND, "존재하지 않는 프로젝트입니다.");
 
     private final HttpStatus status;
 

@@ -35,13 +35,18 @@ public class Posting extends BaseTimeEntity {
     @Column
     private String postingLink;
 
+    @Column
+    private String mediaId;
+
     @Builder
     public Posting(Project project, String postingTitle, SNSType postingType,
-                   PostingState postingState, String postingLink) {
+                   PostingState postingState, String postingLink, String mediaId) {
         this.project       = project;
         this.postingTitle  = postingTitle;
         this.postingType   = postingType;
         this.postingState  = postingState;
         this.postingLink   = postingLink;
+        this.mediaId       = mediaId;
     }
+
 }

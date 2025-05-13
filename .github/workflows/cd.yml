@@ -39,9 +39,6 @@ jobs:
           chmod 400 ncp_key.pem
           
           ssh -i ncp_key.pem -o StrictHostKeyChecking=no $NCP_USER@$NCP_HOST << EOF
-            # 비밀번호 파이프로 넘기기 (-S: 표준입력에서 비밀번호 읽음)
-            printf "%s\n" "$NCP_PASS" | sudo -S apt update
-            printf "%s\n" "$NCP_PASS" | sudo -S apt install -y docker.io
           
             # 기존 컨테이너 중지 및 삭제
             docker stop zaply || true

@@ -30,12 +30,11 @@ jobs:
       - name: Create application.yml files
         run: |
           mkdir -p src/main/resources
-          echo "${{ secrets.APPLICATION_PROPERTIES }}"           > src/main/resources/application.yml
-          echo "${{ secrets.APPLICATION_PROPERTIES_OAUTH }}"     > src/main/resources/application-oauth.yml
-          echo "${{ secrets.APPLICATION_PROPERTIES_CLOUD }}"     > src/main/resources/application-cloud.yml
-          echo "${{ secrets.APPLICATION_PROPERTIES_SWAGGER }}"   > src/main/resources/application-swagger.yml
-          echo "${{ secrets.APPLICATION_PROPERTIES_ACTUATOR }}" > src/main/resources/application-actuator.yml
-
+          echo "${{ secrets.APPLICATION_PROPERTIES }}" > ./src/main/resources/application.yml
+          echo "${{ secrets.APPLICATION_PROPERTIES_OAUTH }}" > ./src/main/resources/application-oauth.yml
+          echo "${{ secrets.APPLICATION_PROPERTIES_CLOUD }}" > ./src/main/resources/application-cloud.yml
+          echo "${{ secrets.APPLICATION_PROPERTIES_SWAGGER }}" > ./src/main/resources/application-swagger.yml
+          echo "${{ secrets.APPLICATION_PROPERTIES_ACTUATOR }}" > ./src/main/resources/application-actuator.yml
 
   # ------------------------------------------------
   # 2) Docker 이미지 빌드 및 Docker Hub 푸시

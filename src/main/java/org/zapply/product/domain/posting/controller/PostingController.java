@@ -20,13 +20,23 @@ public class PostingController {
 
     private final ThreadsPostingClient threadsPostingClient;
 
-    @PostMapping("/threads/{project_id}")
-    @Operation(summary = "스레드 미디어 발행하기", description = "스레드 미디어 발행하기(단일컨테이너)")
-    public ApiResponse<ThreadsPostingResponse> createMedia(@AuthenticationPrincipal AuthDetails authDetails,
+    @PostMapping("/threads/{project_id}/single")
+    @Operation(summary = "스레드 미디어 단일 발행하기", description = "단일 미디어를 업로드하는 메소드. (media 하나만 업로드)")
+    public ApiResponse<ThreadsPostingResponse> createSingleMedia(@AuthenticationPrincipal AuthDetails authDetails,
+                                                                 @Valid @RequestBody ThreadsPostingRequest request,
+                                                                 @PathVariable("project_id") Long projectId) {
+        return ApiResponse.success(
+                threadsPostingClient.createSingleMedia(authDetails.getMember(), request, projectId)
+        );
+    }
+
+    @PostMapping("/threads/{project_id}/carousel")
+    @Operation(summary = "스레드 미디어 케러셀 발행하기", description = "캐러셀 미디어를 업로드하는 메소드. (media 여러개 업로드)")
+    public ApiResponse<ThreadsPostingResponse> createCarouselMedia(@AuthenticationPrincipal AuthDetails authDetails,
                                                                    @Valid @RequestBody ThreadsPostingRequest request,
                                                                    @PathVariable("project_id") Long projectId) {
         return ApiResponse.success(
-                threadsPostingClient.createMedia(authDetails.getMember(), request, projectId)
+                threadsPostingClient.createCarouselMedia(authDetails.getMember(), request, projectId)
         );
     }
 }

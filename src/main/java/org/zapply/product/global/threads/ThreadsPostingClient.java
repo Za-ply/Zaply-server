@@ -23,6 +23,8 @@ import org.zapply.product.global.apiPayload.exception.CoreException;
 import org.zapply.product.global.apiPayload.exception.GlobalErrorType;
 
 import java.net.URI;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 @Slf4j
@@ -38,107 +40,164 @@ public class ThreadsPostingClient {
     private final ProjectRepository projectRepository;
     private final PostingRepository postingRepository;
 
+    /**
+     * Threads 계정 불러오기
+     * @param member
+     * @return account
+     */
     private Account getThreadsAccount(Member member) {
         return accountRepository.findByAccountTypeAndMember(SNSType.THREADS, member)
                 .orElseThrow(() -> new CoreException(GlobalErrorType.ACCOUNT_NOT_FOUND));
     }
 
+    /**
+     * member의 threads 액세스 토큰 불러오기
+     * @param member
+     * @return accessToken
+     */
     private String getAccessToken(Member member) {
         return accountService.getAccessToken(member, SNSType.THREADS);
     }
 
     /**
-     * 스레드에 미디어 컨테이너 생성하기
+     * Threads API에 요청하기
+     * @param uri
+     * @return Response body
+     */
+    private Map<String, Object> postToThreadsApi(URI uri) {
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        ResponseEntity<Map> response = restTemplate.exchange(
+                uri,
+                HttpMethod.POST,
+                new HttpEntity<>(headers),
+                Map.class
+        );
+        Map<String, Object> body = response.getBody();
+        if (body == null || body.get("id") == null) {
+            throw new CoreException(GlobalErrorType.THREADS_CREATION_ID_NOT_FOUND);
+        }
+        return body;
+    }
+
+    /**
+     * Threads 미디어 컨테이너 만들기
+     * @param mediaType
+     * @param mediaUrl
+     * @param accessToken
+     * @param userId
+     * @param isCarouselItem
+     * @param text
+     * @return creationId
+     */
+    private String createMediaContainer(String mediaType, String mediaUrl, String accessToken, String userId, boolean isCarouselItem, String text) {
+        UriComponentsBuilder builder = UriComponentsBuilder
+                .fromHttpUrl(THREADS_API_BASE + "/" + userId + "/threads")
+                .queryParam("media_type", mediaType)
+                .queryParam("image_url", mediaUrl)
+                .queryParam("access_token", accessToken);
+        if (isCarouselItem) {
+            builder.queryParam("is_carousel_item", "true");
+        } else if (text != null) {
+            builder.queryParam("text", text);
+        }
+
+        URI uri = builder.build().encode().toUri();
+        return String.valueOf(postToThreadsApi(uri).get("id"));
+    }
+
+    /**
+     * Threads 미디어 컨테이너 발행하기
+     * @param creationId
+     * @param accessToken
+     * @param userId
+     * @return
+     */
+    private String publishMediaContainer(String creationId, String accessToken, String userId) {
+        URI uri = UriComponentsBuilder
+                .fromHttpUrl(THREADS_API_BASE + "/" + userId + "/threads_publish")
+                .queryParam("creation_id", creationId)
+                .queryParam("access_token", accessToken)
+                .build()
+                .encode()
+                .toUri();
+        return String.valueOf(postToThreadsApi(uri).get("id"));
+    }
+    /**
+     * Posting을 저장하고 응답 객체를 생성
+     * @param mediaId
+     * @param projectId
+     * @param mediaType
+     * @param media
+     * @param text
+     * @return ThreadsPostingResponse
+     */
+    private ThreadsPostingResponse savePosting(String mediaId, Long projectId, String mediaType, String media, String text) {
+        Project project = projectRepository.findById(projectId)
+                .orElseThrow(() -> new CoreException(GlobalErrorType.PROJECT_NOT_FOUND));
+        Posting posting = Posting.builder()
+                .postingLink("")
+                .postingTitle("")
+                .postingType(SNSType.THREADS)
+                .postingState(PostingState.POSTED)
+                .project(project)
+                .mediaId(mediaId)
+                .build();
+        postingRepository.save(posting);
+        return ThreadsPostingResponse.of(posting, mediaType, media, text);
+    }
+
+    /**
+     * Threads 미디어 단일 발행하기
      * @param member
      * @param request
      * @param projectId
-     * @return 생성된 미디어 컨테이너 ID
+     * @return threadsPostingResponse
      */
-    public ThreadsPostingResponse createMedia(Member member, ThreadsPostingRequest request, Long projectId) {
+    public ThreadsPostingResponse createSingleMedia(Member member, ThreadsPostingRequest request, Long projectId) {
         try {
             Account account = getThreadsAccount(member);
             String accessToken = getAccessToken(member);
-
-            URI uri = UriComponentsBuilder
-                    .fromHttpUrl(THREADS_API_BASE + "/" + account.getUserId() + "/threads")
-                    .queryParam("media_type", request.mediaType())
-                    .queryParam("image_url", request.media())
-                    .queryParam("text", request.text())
-                    .queryParam("access_token", accessToken)
-                    .build()
-                    .encode()
-                    .toUri();
-
-            HttpHeaders headers = new HttpHeaders();
-            headers.setContentType(MediaType.APPLICATION_JSON);
-
-            ResponseEntity<Map> response = restTemplate.exchange(
-                    uri,
-                    HttpMethod.POST,
-                    new HttpEntity<>(headers),
-                    Map.class
-            );
-
-            Map<String, Object> body = response.getBody();
-
-            if (body == null || body.get("id") == null) {
-                throw new CoreException(GlobalErrorType.THREADS_CREATION_ID_NOT_FOUND);
-            }
-            return publishMedia(member, String.valueOf(body.get("id")), projectId,
-                    request.mediaType(), request.media(), request.text());
-
+            String mediaId = createMediaContainer(request.mediaType(), request.media().getFirst(), accessToken, account.getUserId(), false, request.text());
+            String publishedId = publishMediaContainer(mediaId, accessToken, account.getUserId());
+            return savePosting(publishedId, projectId, request.mediaType(), request.media().getFirst(), request.text());
         } catch (Exception e) {
             throw new CoreException(GlobalErrorType.THREADS_API_ERROR);
         }
     }
 
     /**
-     * 스레드에 미디어 컨테이너 게시하기
+     * Threads 미디어 케러셀 발행하기
      * @param member
-     * @param creationId
+     * @param request
      * @param projectId
-     * @param mediaType
-     * @param media
-     * @param text
-     * @return 게시된 미디어 컨테이너 ID
+     * @return threadsPostingResponse
      */
-    public ThreadsPostingResponse publishMedia(Member member, String creationId, Long projectId,
-                                                        String mediaType, String media, String text) {
+    public ThreadsPostingResponse createCarouselMedia(Member member, ThreadsPostingRequest request, Long projectId) {
         try {
-
-            Project project = projectRepository.findById(projectId)
-                    .orElseThrow(() -> new CoreException(GlobalErrorType.PROJECT_NOT_FOUND));
             Account account = getThreadsAccount(member);
             String accessToken = getAccessToken(member);
+            List<String> mediaIds = new ArrayList<>();
 
-            URI uri = UriComponentsBuilder
-                    .fromHttpUrl(THREADS_API_BASE + "/" + account.getUserId() + "/threads_publish")
-                    .queryParam("creation_id", creationId)
+            for (String mediaUrl : request.media()) {
+                String mediaId = createMediaContainer(request.mediaType(), mediaUrl, accessToken, account.getUserId(), true, null);
+                mediaIds.add(mediaId);
+            }
+
+            URI containerUri = UriComponentsBuilder
+                    .fromHttpUrl(THREADS_API_BASE + "/" + account.getUserId() + "/threads")
+                    .queryParam("media_type", "CAROUSEL")
+                    .queryParam("children", String.join(",", mediaIds))
                     .queryParam("access_token", accessToken)
+                    .queryParam("text", request.text())
                     .build()
                     .encode()
                     .toUri();
 
-            ResponseEntity<Map> response = restTemplate.exchange(
-                    uri,
-                    HttpMethod.POST,
-                    new HttpEntity<>(new HttpHeaders()),
-                    Map.class
-            );
+            String containerId = String.valueOf(postToThreadsApi(containerUri).get("id"));
+            String publishedId = publishMediaContainer(containerId, accessToken, account.getUserId());
 
-            Map<String, Object> body = response.getBody();
-
-            Posting posting = Posting.builder()
-                    .postingLink("")
-                    .postingTitle("")
-                    .postingType(SNSType.THREADS)
-                    .postingState(PostingState.POSTED)
-                    .project(project)
-                    .mediaId(String.valueOf(body.get("id")))
-                    .build();
-
-            postingRepository.save(posting);
-            return ThreadsPostingResponse.of(posting, mediaType, media, text);
+            return savePosting(publishedId, projectId, request.mediaType(), request.media().getFirst(), request.text());
 
         } catch (Exception e) {
             throw new CoreException(GlobalErrorType.THREADS_API_ERROR);

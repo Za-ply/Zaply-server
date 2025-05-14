@@ -12,4 +12,6 @@ public interface JobScheduler {
     ScheduledFuture<?> schedule(Long postingId, LocalDateTime executeAt, Runnable task);
 
     void completeJob(Long jobId);
+
+    Long generateJobId();
 }

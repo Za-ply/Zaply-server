@@ -23,6 +23,7 @@ import org.zapply.product.global.apiPayload.exception.CoreException;
 import org.zapply.product.global.apiPayload.exception.GlobalErrorType;
 
 import java.net.URI;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -136,7 +137,6 @@ public class ThreadsPostingClient {
     private ThreadsPostingResponse savePosting(String mediaId, Long projectId, String mediaType, String media, String text) {
         Project project = projectRepository.findById(projectId)
                 .orElseThrow(() -> new CoreException(GlobalErrorType.PROJECT_NOT_FOUND));
-
         Posting posting = Posting.builder()
                 .postingLink("")
                 .postingTitle("")
@@ -146,7 +146,6 @@ public class ThreadsPostingClient {
                 .mediaId(mediaId)
                 .build();
         postingRepository.save(posting);
-
         return ThreadsPostingResponse.of(posting, mediaType, media, text);
     }
 
@@ -159,10 +158,11 @@ public class ThreadsPostingClient {
      */
     public ThreadsPostingResponse createSingleMedia(Member member, ThreadsPostingRequest request, Long projectId) {
         try {
-            Account account = getThreadsAccount(member);
-            String accessToken = getAccessToken(member);
+            Account account = getThreadsAccount(member); // 스레드 계정 정보 가져오기
+            String accessToken = getAccessToken(member); // vault에서 가져온 액세스 토큰
             String mediaId = createMediaContainer(request.mediaType(), request.media().getFirst(), accessToken, account.getUserId(), false, request.text());
             String publishedId = publishMediaContainer(mediaId, accessToken, account.getUserId());
+            log.info("projectId : {}, publishedTime : {}", projectId, LocalDateTime.now());
             return savePosting(publishedId, projectId, request.mediaType(), request.media().getFirst(), request.text());
         } catch (Exception e) {
             throw new CoreException(GlobalErrorType.THREADS_API_ERROR);
@@ -199,7 +199,7 @@ public class ThreadsPostingClient {
 
             String containerId = String.valueOf(postToThreadsApi(containerUri).get("id"));
             String publishedId = publishMediaContainer(containerId, accessToken, account.getUserId());
-
+            log.info("projectId : {}, publishedTime : {}", projectId, LocalDateTime.now());
             return savePosting(publishedId, projectId, request.mediaType(), request.media().getFirst(), request.text());
         } catch (Exception e) {
             throw new CoreException(GlobalErrorType.THREADS_API_ERROR);

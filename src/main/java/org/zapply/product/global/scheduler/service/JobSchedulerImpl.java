@@ -1,7 +1,6 @@
 package org.zapply.product.global.scheduler.service;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.boot.context.config.ConfigDataResourceNotFoundException;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.stereotype.Service;
 import org.zapply.product.global.apiPayload.exception.CoreException;
@@ -15,6 +14,7 @@ import java.time.ZoneId;
 import java.util.Date;
 import java.util.concurrent.ScheduledFuture;
 
+
 @Service
 @RequiredArgsConstructor
 public class JobSchedulerImpl implements JobScheduler {
@@ -26,6 +26,12 @@ public class JobSchedulerImpl implements JobScheduler {
 
     @Override
     public ScheduledFuture<?> schedule(Long postingId, LocalDateTime executeAt, Runnable task) {
+
+        if (executeAt.plusMinutes(1).isBefore(LocalDateTime.now())) {
+            System.out.println("실행 실패");
+            throw new CoreException(GlobalErrorType.SCHEDULED_JOB_EXECUTION_TIME_ERROR);
+        }
+
         ScheduledJob job = ScheduledJob.builder()
                 .postingId(postingId)
                 .executeAt(executeAt)
@@ -38,7 +44,8 @@ public class JobSchedulerImpl implements JobScheduler {
         return taskScheduler.schedule(() -> {
             try {
                 task.run();
-                scheduledJobService.completeJob(job.getId());
+                job.updateStatus(JobStatus.COMPLETED);
+                jobRepository.save(job);
             } catch (Exception e) {
                 job.updateStatus(JobStatus.FAILED);
                 jobRepository.save(job);
@@ -48,8 +55,9 @@ public class JobSchedulerImpl implements JobScheduler {
     }
 
     @Override
-    public void completeJob(Long jobId) {
-        scheduledJobService.completeJob(jobId);
-    }
+    public void completeJob(Long jobId) { scheduledJobService.completeJob(jobId); }
+
+    @Override
+    public Long generateJobId() { return System.currentTimeMillis(); }
 }
 

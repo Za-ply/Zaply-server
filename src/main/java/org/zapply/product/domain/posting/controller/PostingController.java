@@ -7,9 +7,11 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.zapply.product.domain.posting.dto.request.ThreadsPostingRequest;
+import org.zapply.product.domain.posting.dto.response.ThreadsInsightResponse;
 import org.zapply.product.domain.posting.dto.response.ThreadsPostingResponse;
 import org.zapply.product.global.apiPayload.response.ApiResponse;
 import org.zapply.product.global.security.AuthDetails;
+import org.zapply.product.global.threads.ThreadsInsightClient;
 import org.zapply.product.global.threads.ThreadsPostingClient;
 
 @RestController
@@ -19,6 +21,7 @@ import org.zapply.product.global.threads.ThreadsPostingClient;
 public class PostingController {
 
     private final ThreadsPostingClient threadsPostingClient;
+    private final ThreadsInsightClient threadsInsightClient;
 
     @PostMapping("/threads/{project_id}/single")
     @Operation(summary = "스레드 미디어 단일 발행하기", description = "단일 미디어를 업로드하는 메소드. (media 하나만 업로드)")
@@ -38,5 +41,13 @@ public class PostingController {
         return ApiResponse.success(
                 threadsPostingClient.createCarouselMedia(authDetails.getMember(), request, projectId)
         );
+    }
+
+    @GetMapping("/threads/{posting_id}/insight")
+    @Operation(summary = "스레드 게시물 인사이트 조회하기", description = "스레드 게시물의 인사이트를 조회하는 메소드.")
+    public ApiResponse<ThreadsInsightResponse> getThreadsInsight(@AuthenticationPrincipal AuthDetails authDetails,
+                                                                          @PathVariable("posting_id") Long postingId) {
+        return ApiResponse.success(
+                threadsInsightClient.getThreadsInsight(authDetails.getMember(), postingId));
     }
 }

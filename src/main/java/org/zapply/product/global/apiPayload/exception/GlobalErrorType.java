@@ -51,7 +51,10 @@ public enum GlobalErrorType implements ErrorType {
 
 
     // Project
-    PROJECT_NOT_FOUND(HttpStatus.NOT_FOUND, "존재하지 않는 프로젝트입니다.");
+    PROJECT_NOT_FOUND(HttpStatus.NOT_FOUND, "존재하지 않는 프로젝트입니다."),
+
+    // Posting
+    POSTING_NOT_FOUND(HttpStatus.NOT_FOUND, "존재하지 않는 게시물입니다.");
 
     private final HttpStatus status;
 

@@ -8,6 +8,7 @@ import org.zapply.product.domain.user.entity.Account;
 import org.zapply.product.domain.user.entity.Member;
 import org.zapply.product.domain.user.enumerate.SNSType;
 import org.zapply.product.domain.user.repository.AccountRepository;
+import org.zapply.product.domain.user.repository.MemberRepository;
 import org.zapply.product.global.apiPayload.exception.CoreException;
 import org.zapply.product.global.apiPayload.exception.GlobalErrorType;
 import org.zapply.product.global.facebook.FacebookClient;
@@ -31,6 +32,7 @@ public class AccountService {
     private final FacebookClient facebookClient;
     private final ThreadsClient threadsClient;
     private final VaultClient vaultClient;
+    private final MemberRepository memberRepository;
 
     @Value("${spring.security.oauth2.client.registration.facebook.redirect-uri}")
     private String facebookRedirectUrl;
@@ -49,10 +51,12 @@ public class AccountService {
      * 페이스북 계정 연동
      *
      * @param code
-     * @param member
+     * @param memberId
      * @return Redis Key
      */
-    public String linkFacebook(String code, Member member) {
+    public String linkFacebook(String code, Long memberId) {
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new CoreException(GlobalErrorType.MEMBER_NOT_FOUND));
         // 페이스북으로 액세스 토큰 요청하기
         FacebookToken shortFacebookAccessToken = facebookClient.getFacebookAccessToken(code, facebookRedirectUrl);
         FacebookToken longFacebookAccessToken = facebookClient.getLongLivedToken(shortFacebookAccessToken.accessToken());
@@ -98,10 +102,14 @@ public class AccountService {
      * 스레드 계정 연동
      *
      * @param code
-     * @param member
+     * @param memberId
      * @return Redis Key
      */
-    public String linkThreads(String code, Member member) {
+    public String linkThreads(String code, Long memberId) {
+
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new CoreException(GlobalErrorType.MEMBER_NOT_FOUND));
+
         // 스레드로 액세스 토큰 요청하기
         ThreadsToken shortThreadsToken = threadsClient.getThreadsAccessToken(code, threadsRedirectUrl);
 

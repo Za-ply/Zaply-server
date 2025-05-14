@@ -11,9 +11,12 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.util.UriComponentsBuilder;
+import org.zapply.product.domain.user.repository.MemberRepository;
 import org.zapply.product.global.apiPayload.exception.CoreException;
 import org.zapply.product.global.apiPayload.exception.GlobalErrorType;
 
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
 
@@ -21,6 +24,7 @@ import java.util.Map;
 @Service
 @RequiredArgsConstructor
 public class ThreadsClient {
+    private final MemberRepository memberRepository;
     @Value("${spring.security.oauth2.client.registration.threads.client-id}")
     private String clientId;
 
@@ -36,8 +40,27 @@ public class ThreadsClient {
     @Value("${spring.security.oauth2.client.provider.threads.user-info-uri}")
     private String userInfoUrl;
 
+    @Value("${spring.security.oauth2.client.registration.threads.redirect-uri}")
+    private String redirectUri;
+
     private final ObjectMapper objectMapper;
     private final RestClient restClient = RestClient.create();
+
+    /**
+     * 스레드 로그인 URL 생성
+     * @param memberId
+     * @return 스레드 로그인 URL
+     */
+    public String buildAuthorizationUri(Long memberId) {
+        String uri = redirectUri + "?state=" + memberId;
+        return UriComponentsBuilder.fromHttpUrl("https://threads.net/oauth/authorize")
+                .queryParam("client_id", clientId)
+                .queryParam("redirect_uri", redirectUri)
+                .queryParam("scope", "threads_basic,threads_content_publish,threads_manage_replies,threads_manage_insights,threads_read_replies,threads_manage_mentions,threads_keyword_search,threads_delete")
+                .queryParam("response_type", "code")
+                .toUriString();
+    }
+
 
     /**
      * 스레드로부터 받은 인가코드를 통해 액세스 토큰 요청하기
@@ -46,12 +69,16 @@ public class ThreadsClient {
      * @return ThreadsToken
      */
     public ThreadsToken getThreadsAccessToken(String code, String redirectUri) {
+
+        String decodedCode = URLDecoder.decode(code, StandardCharsets.UTF_8);
+        String cleanCode = decodedCode.split("#")[0];  // code 이후의 #_ 제거
+
         MultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
         formData.add("client_id", clientId);
         formData.add("client_secret", clientSecret);
         formData.add("grant_type", grantType);
         formData.add("redirect_uri", redirectUri);
-        formData.add("code", code);
+        formData.add("code", cleanCode);
 
         String response = restClient.post()
                 .uri(accessTokenUrl)

@@ -87,7 +87,7 @@ public class SecurityConfig {
                                 "/api/auth/google/**",
                                 "/api/oauth/callback/*",
                                 "/v1/account/facebook/link",
-                                "/v1/account/facebook/login"
+                                "/v1/account/threads/link"
                         ).permitAll()
 
                         // 문자 인증

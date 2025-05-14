@@ -102,10 +102,14 @@ public class AccountService {
      * 스레드 계정 연동
      *
      * @param code
-     * @param member
+     * @param memberId
      * @return Redis Key
      */
-    public String linkThreads(String code, Member member) {
+    public String linkThreads(String code, Long memberId) {
+
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new CoreException(GlobalErrorType.MEMBER_NOT_FOUND));
+
         // 스레드로 액세스 토큰 요청하기
         ThreadsToken shortThreadsToken = threadsClient.getThreadsAccessToken(code, threadsRedirectUrl);
 

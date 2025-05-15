@@ -106,22 +106,16 @@ public class AccountService {
      * @return Redis Key
      */
     public String linkThreads(String code, Long memberId) {
-
         Member member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new CoreException(GlobalErrorType.MEMBER_NOT_FOUND));
-
         // 스레드로 액세스 토큰 요청하기
         ThreadsToken shortThreadsToken = threadsClient.getThreadsAccessToken(code, threadsRedirectUrl);
-
         // 스레드에서 장기 액세스 토큰 요청하기
         ThreadsToken longThreadsToken = threadsClient.getLongLivedToken(shortThreadsToken.accessToken());
-
         // 스레드에 있는 사용자 정보 반환
         ThreadsProfile profile = threadsClient.getThreadsProfile(longThreadsToken.accessToken());
-
         // 반환된 정보의 username 추출, key 생성
         String key = "threads:" + "client:" + generateKey(member.getId(), profile.username());
-
         //bussiness logic: account 정보가 이미 있다면 확인 후 해당 account 정보를 반환하고, 없다면 새로운 account 정보를 생성하여 반환
         Account account = accountRepository.findByAccountNameAndAccountTypeAndMember(profile.username(), SNSType.THREADS, member)
                 .map(existingAccount -> {
@@ -143,7 +137,6 @@ public class AccountService {
                     return accountRepository.save(newAccount);
                 });
         vaultClient.saveSecret(threadsPath, key, longThreadsToken.accessToken());
-
         return key;
     }
 

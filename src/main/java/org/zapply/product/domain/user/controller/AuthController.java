@@ -14,7 +14,6 @@ import org.zapply.product.domain.user.dto.response.MemberResponse;
 import org.zapply.product.domain.user.dto.response.TokenResponse;
 import org.zapply.product.domain.user.service.AccountService;
 import org.zapply.product.domain.user.service.AuthService;
-import org.zapply.product.domain.user.service.UserService;
 import org.zapply.product.global.apiPayload.response.ApiResponse;
 import org.zapply.product.global.security.AuthDetails;
 import org.zapply.product.global.security.jwt.JwtProvider;
@@ -74,7 +73,7 @@ public class AuthController {
     }
 
     // 사용자가 연동한 account를 조회
-    @GetMapping("/account")
+    @GetMapping("/accounts")
     @Operation(summary = "사용자 연동 계정 조회", description = "사용자가 연동한 계정 조회")
     public ApiResponse<?> getUserAccount(@AuthenticationPrincipal AuthDetails authDetails) {
         return ApiResponse.success(accountService.getAccountsInfo(authDetails.getMember()));

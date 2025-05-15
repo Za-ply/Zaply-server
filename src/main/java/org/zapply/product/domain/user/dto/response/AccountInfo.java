@@ -1,16 +1,18 @@
 package org.zapply.product.domain.user.dto.response;
 
+import lombok.Builder;
 import org.zapply.product.domain.user.entity.Account;
 import org.zapply.product.domain.user.enumerate.SNSType;
 
-public record AccountInfo (
+@Builder
+public record AccountInfo(
         SNSType snsType,
         String accountName
-){
+) {
     public static AccountInfo of(Account account) {
-        return new AccountInfo(
-                account.getAccountType(),
-                account.getAccountName()
-        );
+        return AccountInfo.builder()
+                .snsType(account.getAccountType())
+                .accountName(account.getAccountName())
+                .build();
     }
 }

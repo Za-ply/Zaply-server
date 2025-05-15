@@ -5,7 +5,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.zapply.product.domain.service.ToneTransferService;
+import org.zapply.product.domain.posting.dto.request.ToneTransferRequest;
+import org.zapply.product.domain.posting.service.ToneTransferService;
 import org.zapply.product.global.clova.dto.ClovaMessage;
 import org.zapply.product.global.clova.enuermerate.SNSType;
 import org.zapply.product.global.clova.dto.request.ClovaRequest;
@@ -50,22 +51,31 @@ class ClovaAiClientTest {
 
     @Test
     public void 쓰레드_글로_변경() {
-        String authorizationHeader = "Bearer " + apiKey;
-        String storyLines = toneTransferService.TransferToSNSTone(SNSType.THREADS, "오늘은 정말 기분이 좋다. 날씨도 좋고, 친구들과 함께하는 시간이 너무 즐거워.");
+        ToneTransferRequest toneTransferRequest = new ToneTransferRequest(
+                SNSType.THREADS,
+                "오늘은 정말 기분이 좋다. 날씨도 좋고, 친구들과 함께하는 시간이 너무 즐거워."
+        );
+        String storyLines = toneTransferService.TransferToSNSTone(toneTransferRequest);
         System.out.println(storyLines);
     }
 
     @Test
     public void 인스타_글로_변경() {
-        String authorizationHeader = "Bearer " + apiKey;
-        String storyLines = toneTransferService.TransferToSNSTone(SNSType.INSTAGRAM, "오늘은 정말 기분이 좋다. 날씨도 좋고, 친구들과 함께하는 시간이 너무 즐거워.");
+        ToneTransferRequest toneTransferRequest = new ToneTransferRequest(
+                SNSType.INSTAGRAM,
+                "오늘은 정말 기분이 좋다. 날씨도 좋고, 친구들과 함께하는 시간이 너무 즐거워."
+        );
+        String storyLines = toneTransferService.TransferToSNSTone(toneTransferRequest);
         System.out.println(storyLines);
     }
 
     @Test
     public void 페이스북_글로_변경() {
-        String authorizationHeader = "Bearer " + apiKey;
-        String storyLines = toneTransferService.TransferToSNSTone(SNSType.FACEBOOK, "오늘은 정말 기분이 좋다. 날씨도 좋고, 친구들과 함께하는 시간이 너무 즐거워.");
+        ToneTransferRequest toneTransferRequest = new ToneTransferRequest(
+                SNSType.FACEBOOK,
+                "오늘은 정말 기분이 좋다. 날씨도 좋고, 친구들과 함께하는 시간이 너무 즐거워."
+        );
+        String storyLines = toneTransferService.TransferToSNSTone(toneTransferRequest);
         System.out.println(storyLines);
     }
 }

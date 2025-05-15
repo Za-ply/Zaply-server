@@ -1,10 +1,11 @@
-package org.zapply.product.domain.service;
+package org.zapply.product.domain.posting.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.zapply.product.domain.posting.dto.request.ToneTransferRequest;
 import org.zapply.product.global.clova.enuermerate.SNSType;
 import org.zapply.product.global.apiPayload.exception.CoreException;
 import org.zapply.product.global.apiPayload.exception.GlobalErrorType;
@@ -26,8 +27,10 @@ public class ToneTransferService {
 
     private final ClovaAiClient clovaAiClient;
 
-    public String TransferToSNSTone(SNSType snsType, String userPrompt) {
+    public String TransferToSNSTone(ToneTransferRequest toneTransferRequest) {
         String authorizationHeader = "Bearer " + apiKey;
+        SNSType snsType = toneTransferRequest.snsType();
+        String userPrompt = toneTransferRequest.userPrompt();
         try{
             ClovaRequest clovaRequset = snsType.buildRequest(userPrompt);
             ClovaResponse clovaResponse = clovaAiClient.getCompletions(authorizationHeader, modelName, clovaRequset);

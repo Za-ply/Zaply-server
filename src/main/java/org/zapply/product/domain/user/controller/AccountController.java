@@ -13,7 +13,6 @@ import org.zapply.product.global.apiPayload.response.ApiResponse;
 import org.zapply.product.global.facebook.FacebookClient;
 import org.zapply.product.global.security.AuthDetails;
 import org.zapply.product.global.threads.ThreadsClient;
-import retrofit2.http.Path;
 
 import java.io.IOException;
 

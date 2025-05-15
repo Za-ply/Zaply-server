@@ -7,7 +7,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
-import org.zapply.product.domain.user.enumerate.SNSType;
+import org.zapply.product.global.clova.enuermerate.SNSType;
 import org.zapply.product.domain.user.service.AccountService;
 import org.zapply.product.global.apiPayload.response.ApiResponse;
 import org.zapply.product.global.facebook.FacebookClient;

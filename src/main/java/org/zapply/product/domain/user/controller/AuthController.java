@@ -12,6 +12,7 @@ import org.zapply.product.domain.user.dto.request.AuthRequest;
 import org.zapply.product.domain.user.dto.request.SignInRequest;
 import org.zapply.product.domain.user.dto.response.MemberResponse;
 import org.zapply.product.domain.user.dto.response.TokenResponse;
+import org.zapply.product.domain.user.service.AccountService;
 import org.zapply.product.domain.user.service.AuthService;
 import org.zapply.product.domain.user.service.UserService;
 import org.zapply.product.global.apiPayload.response.ApiResponse;
@@ -29,6 +30,7 @@ public class AuthController {
 
     private final AuthService authService;
     private final JwtProvider jwtProvider;
+    private final AccountService accountService;
 
     @PostMapping("/sign-up")
     @Operation(summary = "회원가입", description = "사용자의 정보 입력 후 회원가입")
@@ -69,5 +71,12 @@ public class AuthController {
     @Operation(summary = "사용자 정보 조회(이름, 이메일)", description = "jwt 토큰을 통해 사용자 정보 조회")
     public ApiResponse<MemberResponse> getUserInformation(@AuthenticationPrincipal AuthDetails authDetails) {
         return ApiResponse.success(MemberResponse.of(authDetails.getMember()));
+    }
+
+    // 사용자가 연동한 account를 조회
+    @GetMapping("/account")
+    @Operation(summary = "사용자 연동 계정 조회", description = "사용자가 연동한 계정 조회")
+    public ApiResponse<?> getUserAccount(@AuthenticationPrincipal AuthDetails authDetails) {
+        return ApiResponse.success(accountService.getAccountsInfo(authDetails.getMember()));
     }
 }

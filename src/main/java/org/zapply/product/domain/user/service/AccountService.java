@@ -214,6 +214,15 @@ public class AccountService {
     public void unlinkService(SNSType snsType, Member member) {
         Account account = accountRepository.findByAccountTypeAndMember(snsType, member)
                 .orElseThrow(() -> new CoreException(GlobalErrorType.ACCOUNT_NOT_FOUND));
-        accountRepository.delete(account);
-    }
+
+        String vaultPath;
+        switch (snsType) {
+            case FACEBOOK -> vaultPath = facebookPath;
+            case THREADS -> vaultPath = threadsPath;
+            default -> throw new CoreException(GlobalErrorType.SNS_TYPE_NOT_FOUND);
+        }
+            vaultClient.deleteSecretKey(vaultPath, account.getTokenKey());
+            accountRepository.delete(account);
+        }
+
 }

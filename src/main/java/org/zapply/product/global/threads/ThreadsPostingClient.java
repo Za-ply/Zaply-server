@@ -16,7 +16,7 @@ import org.zapply.product.domain.project.entity.Project;
 import org.zapply.product.domain.project.repository.ProjectRepository;
 import org.zapply.product.domain.user.entity.Account;
 import org.zapply.product.domain.user.entity.Member;
-import org.zapply.product.domain.user.enumerate.SNSType;
+import org.zapply.product.global.clova.enuermerate.SNSType;
 import org.zapply.product.domain.user.repository.AccountRepository;
 import org.zapply.product.domain.user.service.AccountService;
 import org.zapply.product.global.apiPayload.exception.CoreException;

@@ -55,10 +55,12 @@ public enum GlobalErrorType implements ErrorType {
     // Vault
     VAULT_TOKEN_NOT_FOUND(HttpStatus.NOT_FOUND, "Vault에 토큰이 존재하지 않습니다."),
 
-
     // Project
-    PROJECT_NOT_FOUND(HttpStatus.NOT_FOUND, "존재하지 않는 프로젝트입니다.");
+    PROJECT_NOT_FOUND(HttpStatus.NOT_FOUND, "존재하지 않는 프로젝트입니다."),
 
+    // Clova
+    CLOVA_API_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "Clova API 호출에 실패했습니다."),
+    ;
     private final HttpStatus status;
 
     private final String message;

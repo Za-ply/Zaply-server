@@ -205,4 +205,15 @@ public class AccountService {
     public boolean isTokenExpired(Account account) {
         return account.getTokenExpireAt() == null || LocalDateTime.now().isAfter(account.getTokenExpireAt());
     }
+
+    /**
+     * 계정 삭제
+     * @param snsType
+     * @param member
+     */
+    public void unlinkService(SNSType snsType, Member member) {
+        Account account = accountRepository.findByAccountTypeAndMember(snsType, member)
+                .orElseThrow(() -> new CoreException(GlobalErrorType.ACCOUNT_NOT_FOUND));
+        accountRepository.delete(account);
+    }
 }

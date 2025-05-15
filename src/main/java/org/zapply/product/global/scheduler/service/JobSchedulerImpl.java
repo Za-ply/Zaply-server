@@ -28,7 +28,6 @@ public class JobSchedulerImpl implements JobScheduler {
     public ScheduledFuture<?> schedule(Long postingId, LocalDateTime executeAt, Runnable task) {
 
         if (executeAt.plusMinutes(1).isBefore(LocalDateTime.now())) {
-            System.out.println("실행 실패");
             throw new CoreException(GlobalErrorType.SCHEDULED_JOB_EXECUTION_TIME_ERROR);
         }
 

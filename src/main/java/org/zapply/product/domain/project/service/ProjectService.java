@@ -22,7 +22,6 @@ public class ProjectService {
                 .projectThumbnail("")   // 빈 썸네일
                 .build();
 
-        Project saved = projectRepository.save(project);
-        return saved.getProjectId();
+        return projectRepository.save(project).getProjectId();
     }
 }

@@ -1,55 +1,46 @@
 package org.zapply.product.domain.posting.service;
 
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.zapply.product.domain.posting.dto.request.ThreadsPostingRequest;
-import org.zapply.product.domain.posting.dto.response.ThreadsPostingResponse;
+import org.zapply.product.domain.posting.dto.response.PostingInfoResponse;
+import org.zapply.product.domain.posting.entity.Posting;
+import org.zapply.product.domain.posting.repository.PostingRepository;
+import org.zapply.product.domain.project.entity.Project;
+import org.zapply.product.domain.project.repository.ProjectRepository;
+import org.zapply.product.domain.project.service.ImageService;
+import org.zapply.product.domain.project.service.ProjectService;
 import org.zapply.product.domain.user.entity.Member;
-import org.zapply.product.global.scheduler.service.JobScheduler;
-import org.zapply.product.global.threads.ThreadsPostingClient;
+import org.zapply.product.global.apiPayload.exception.CoreException;
+import org.zapply.product.global.apiPayload.exception.GlobalErrorType;
 
-import java.time.LocalDateTime;
+import java.util.List;
 
-@Slf4j
 @Service
 @RequiredArgsConstructor
 public class PostingService {
 
-    private final JobScheduler jobScheduler;
-    private final ThreadsPostingClient threadsPostingClient;
+    private final PostingRepository postingRepository;
+    private final ProjectRepository projectRepository;
+    private final ImageService imageService;
 
-    // 스레드 미디어 단일 예약 발행하기
-    public void createScheduledSingleMedia(Member member, ThreadsPostingRequest request, Long projectId) {
-        log.info("projectId : {}, scheduledAt : {}", projectId, request.scheduledAt());
-        Long jobId = jobScheduler.generateJobId();
-        jobScheduler.schedule(
-                jobId,
-                request.scheduledAt(),
-                () -> threadsPostingClient.createSingleMedia(member, request, projectId)
-        );
+    public List<PostingInfoResponse> getPostings(Member member, Long projectId) {
+
+        // 해당 유저가 가진 프로젝트인지 확인
+        Project project = projectRepository.findById(projectId)
+                .orElseThrow(() -> new CoreException(GlobalErrorType.PROJECT_NOT_FOUND));
+
+        if (!project.getMember().getId().equals(member.getId())) {
+            throw new CoreException(GlobalErrorType.IS_NOT_USER_PROJECT);
+        }
+
+        List<Posting> postings = postingRepository.findAllByProject_ProjectIdAndDeletedAtIsNull(projectId);
+        if (postings.isEmpty()) {throw new CoreException(GlobalErrorType.POSTING_NOT_FOUND);}
+
+        return postings.stream()
+                .map(posting -> PostingInfoResponse.of(
+                        posting,
+                        imageService.getImagesURLByPosting(posting)
+                ))
+                .toList();
     }
-
-    // 스레드 미디어 단일 발행하기
-    public void createSingleMedia(Member member, ThreadsPostingRequest request, Long projectId) {
-        threadsPostingClient.createSingleMedia(member, request, projectId);
-    }
-
-    // 스레드 미디어 캐러셀(다중) 예약 발행하기
-    public void createScheduledCarouselMedia(Member member, ThreadsPostingRequest request, Long projectId) {
-        log.info("projectId : {}, scheduledAt : {}", projectId, request.scheduledAt());
-        Long jobId = jobScheduler.generateJobId();
-        jobScheduler.schedule(
-                jobId,
-                request.scheduledAt(),
-                () -> threadsPostingClient.createCarouselMedia( member, request, projectId)
-        );
-    }
-
-    // 스레드 미디어 캐러셀(다중) 발행하기
-    public ThreadsPostingResponse createCarouselMedia(Member member, ThreadsPostingRequest request, Long projectId) {
-        return threadsPostingClient.createCarouselMedia(member, request, projectId);
-    }
-
-
 }

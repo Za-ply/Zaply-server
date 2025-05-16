@@ -57,6 +57,10 @@ public enum GlobalErrorType implements ErrorType {
 
     // Project
     PROJECT_NOT_FOUND(HttpStatus.NOT_FOUND, "존재하지 않는 프로젝트입니다."),
+    IS_NOT_USER_PROJECT(HttpStatus.BAD_REQUEST, "요청한 유저가 접근할 수 없는 컨텐츠입니다."),
+
+    // Posting
+    POSTING_NOT_FOUND(HttpStatus.NOT_FOUND, "해당 컨텐츠에 게시글이 존재하지 않습니다."),
 
     // Clova
     CLOVA_API_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "Clova API 호출에 실패했습니다."),

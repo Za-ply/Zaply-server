@@ -139,7 +139,6 @@ public class ThreadsPostingClient {
                 .orElseThrow(() -> new CoreException(GlobalErrorType.PROJECT_NOT_FOUND));
         Posting posting = Posting.builder()
                 .postingLink("")
-                .postingTitle("")
                 .postingType(SNSType.THREADS)
                 .postingState(PostingState.POSTED)
                 .project(project)

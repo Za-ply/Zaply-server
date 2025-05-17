@@ -2,13 +2,14 @@ package org.zapply.product.global.threads;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.util.UriComponentsBuilder;
+import org.zapply.product.global.apiPayload.exception.CoreException;
+import org.zapply.product.global.apiPayload.exception.GlobalErrorType;
 
 import java.net.URI;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -19,27 +20,27 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class ThreadsMediaClient {
 
-    private static final String THREADS_API_BASE = "https://graph.threads.net/v1.0";
+    @Value("${base-url.threads}")
+    private String THREADS_API_BASE;
 
     private final RestClient restClient = RestClient.create();
 
     /**
-     * 사용자가 발행한 게시물의 미디어를 가져오는 메서드
-     * curl -s -X GET \
+     * 스레드 미디어 조회하기 (모든 미디어)
      * @param accessToken
-     * @return 게시글 리스트 가져오기
+     * @return
      */
     public List<ThreadsMediaResponse.ThreadsMedia> getAllThreadsMedia(String accessToken) {
         List<ThreadsMediaResponse.ThreadsMedia> allMedia = new ArrayList<>();
-        String now = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+        long nowTimestamp = System.currentTimeMillis() / 1000;
         String after = null;
 
         while (true) {
             URI uri = UriComponentsBuilder
                     .fromHttpUrl(THREADS_API_BASE + "/me/threads")
-                    .queryParam("fields", "id,media_product_type,media_type,media_url,permalink,owner,username,text,timestamp,shortcode,thumbnail_url,children,is_quote_post")
+                    .queryParam("fields", "id,media_product_type,media_type,permalink,owner,username,text,timestamp,shortcode,thumbnail_url,is_quote_post,children,alt_text")
                     .queryParam("since", "2023-07-06")
-                    .queryParam("until", now)
+                    .queryParam("until", nowTimestamp)
                     .queryParam("limit", "25")
                     .queryParam("access_token", accessToken)
                     .queryParamIfPresent("after", Optional.ofNullable(after))
@@ -47,20 +48,26 @@ public class ThreadsMediaClient {
                     .encode()
                     .toUri();
 
-            //is_quote_post가 true인 경우는 제외
-            ThreadsMediaResponse response = Objects.requireNonNull(restClient.get()
-                    .uri(uri)
-                    .retrieve()
-                    .body(ThreadsMediaResponse.class));
+            ThreadsMediaResponse response;
+            try {
+                response = Objects.requireNonNull(restClient.get()
+                        .uri(uri)
+                        .retrieve()
+                        .body(ThreadsMediaResponse.class));
+            } catch (Exception e) {
+                throw new CoreException(GlobalErrorType.THREADS_MEDIA_NOT_FOUND);
+            }
 
-            List<ThreadsMediaResponse.ThreadsMedia> filteredMedia = response.data()
-                    .stream()
+            List<ThreadsMediaResponse.ThreadsMedia> filteredMedia = response.data().stream()
                     .filter(media -> !media.is_quote_post())
+                    .filter(media -> "IMAGE".equals(media.media_type()) ||
+                            "CAROUSEL_ALBUM".equals(media.media_type()) ||
+                            "TEXT_POST".equals(media.media_type()))
+                    .map(media -> processMedia(media, accessToken))
+                    .filter(Objects::nonNull)
                     .toList();
 
-            if (response.data() != null) {
-                allMedia.addAll(filteredMedia);
-            }
+            allMedia.addAll(filteredMedia);
 
             if (response.paging() == null || response.paging().cursors() == null || response.paging().cursors().after() == null) {
                 break;
@@ -68,28 +75,121 @@ public class ThreadsMediaClient {
 
             after = response.paging().cursors().after();
         }
-
         return allMedia;
     }
 
     /**
-     * 스레드 단일 미디어 조회하기
+     * 스레드 미디어 조회하기 (단일 미디어)
      * @param accessToken
      * @param mediaId
-     * @return 스레드 미디어 조회 결과
+     * @return
      */
     public ThreadsMediaResponse.ThreadsMedia getSingleThreadsMedia(String accessToken, String mediaId) {
         URI uri = UriComponentsBuilder
                 .fromHttpUrl(THREADS_API_BASE + "/" + mediaId)
-                .queryParam("fields", "id,media_product_type,media_type,media_url,permalink,owner,username,text,timestamp,shortcode,thumbnail_url,children,is_quote_post")
+                .queryParam("fields", "id,media_product_type,media_type,permalink,owner,username,text,timestamp,shortcode,thumbnail_url,is_quote_post,children,alt_text")
                 .queryParam("access_token", accessToken)
                 .build()
                 .encode()
                 .toUri();
 
-        return restClient.get()
-                .uri(uri)
-                .retrieve()
-                .body(ThreadsMediaResponse.ThreadsMedia.class);
+        ThreadsMediaResponse.ThreadsMedia media;
+        try {
+            media = restClient.get()
+                    .uri(uri)
+                    .retrieve()
+                    .body(ThreadsMediaResponse.ThreadsMedia.class);
+        } catch (Exception e) {
+            throw new CoreException(GlobalErrorType.THREADS_MEDIA_NOT_FOUND);
+        }
+
+        if (media == null || media.is_quote_post() ||
+                !("IMAGE".equals(media.media_type()) || "CAROUSEL_ALBUM".equals(media.media_type())
+                        || "TEXT_POST".equals(media.media_type()))) {
+            throw new CoreException(GlobalErrorType.THREADS_MEDIA_NOT_FOUND);
+        }
+
+        return processMedia(media, accessToken);
+    }
+
+    /**
+     * 스레드 미디어 처리하기
+     * @param media
+     * @param accessToken
+     * @return
+     */
+    private ThreadsMediaResponse.ThreadsMedia processMedia(ThreadsMediaResponse.ThreadsMedia media, String accessToken) {
+        String mediaId = media.id();
+        String mediaType = media.media_type();
+
+        if ("IMAGE".equals(mediaType)) {
+            String mediaUrl = fetchMediaUrl(mediaId, accessToken);
+            if (mediaUrl == null) {
+                throw new CoreException(GlobalErrorType.THREADS_MEDIA_NOT_FOUND);
+            }
+            return media
+                    .withMediaUrl(mediaUrl)
+                    .withCarouselMediaUrls(List.of());
+        }
+
+        if ("CAROUSEL_ALBUM".equals(mediaType) && media.children() != null && !media.children().data().isEmpty()) {
+            List<String> childMediaIds = media.children().data().stream()
+                    .map(ThreadsMediaResponse.ThreadsMedia.Child::id)
+                    .filter(Objects::nonNull)
+                    .toList();
+
+            List<String> imageUrls = new ArrayList<>();
+            for (String childId : childMediaIds) {
+                String childMediaUrl = fetchMediaUrl(childId, accessToken);
+                if (childMediaUrl != null) {
+                    imageUrls.add(childMediaUrl);
+                }
+            }
+
+            if (imageUrls.isEmpty()) {
+                throw new CoreException(GlobalErrorType.THREADS_MEDIA_NOT_FOUND);
+            }
+
+            return media
+                    .withMediaUrl("")
+                    .withCarouselMediaUrls(imageUrls);
+        }
+        if ("TEXT_POST".equals(mediaType)) {
+            return media
+                    .withMediaUrl("")
+                    .withCarouselMediaUrls(List.of());
+        }
+
+        return null;
+    }
+
+    /**
+     * 스레드 미디어 URL 가져오기
+     * @param mediaId
+     * @param accessToken
+     * @return
+     */
+    private String fetchMediaUrl(String mediaId, String accessToken) {
+        URI uri = UriComponentsBuilder
+                .fromHttpUrl(THREADS_API_BASE + "/" + mediaId)
+                .queryParam("fields", "media_url,media_type")
+                .queryParam("access_token", accessToken)
+                .build()
+                .encode()
+                .toUri();
+
+        try {
+            @SuppressWarnings("unchecked")
+            java.util.Map<String, Object> response = restClient.get()
+                    .uri(uri)
+                    .retrieve()
+                    .body(java.util.Map.class);
+            if (response != null && "IMAGE".equals(response.get("media_type"))) {
+                return String.valueOf(response.get("media_url"));
+            }
+        } catch (Exception e) {
+            throw new CoreException(GlobalErrorType.THREADS_MEDIA_NOT_FOUND);
+        }
+        return null;
     }
 }

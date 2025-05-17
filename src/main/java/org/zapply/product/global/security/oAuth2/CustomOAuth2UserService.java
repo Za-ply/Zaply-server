@@ -8,6 +8,8 @@ import org.springframework.security.oauth2.client.userinfo.OAuth2UserService;
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
+import org.zapply.product.domain.user.entity.Agreement;
+import org.zapply.product.domain.user.entity.Credential;
 import org.zapply.product.domain.user.entity.Member;
 import org.zapply.product.domain.user.enumerate.LoginType;
 import org.zapply.product.domain.user.repository.MemberRepository;
@@ -44,15 +46,23 @@ public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
         String email = (String) attributes.get("email");
         String name = (String) attributes.get("name");
 
+        // agreement 정보는 기본값으로 설정
+        Agreement agreement = Agreement.builder()
+                .privacyPolicyAgreed(false)
+                .termsOfServiceAgreed(false)
+                .marketingAgreed(false)
+                .build();
+
         // 회원 조회 또는 생성
         Member member = memberRepository.findByEmailAndDeletedAtIsNull(email)
                 .orElseGet(() -> {
-                    log.info("신규 회원 생성: {}", email);
+                    log.info("google 로그인 신규 회원 생성: {}", email);
                     return memberRepository.save(
                             Member.builder()
                                     .name(name)
-                                    .loginType(LoginType.GOOGLE)
                                     .email(email)
+                                    .agreement(agreement)
+                                    .loginType(LoginType.GOOGLE)
                                     .build()
                     );
                 });

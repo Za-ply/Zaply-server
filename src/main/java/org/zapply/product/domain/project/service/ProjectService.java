@@ -19,7 +19,6 @@ public class ProjectService {
         Project project = Project.builder()
                 .member(member)
                 .projectTitle("")       // 빈 타이틀
-                .projectThumbnail("")   // 빈 썸네일
                 .build();
 
         return projectRepository.save(project).getProjectId();

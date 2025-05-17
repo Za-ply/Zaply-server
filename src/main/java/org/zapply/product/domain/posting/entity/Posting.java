@@ -22,11 +22,11 @@ public class Posting extends BaseTimeEntity {
     private Project project;
 
     @Column
-    private String postingTitle;
-
-    @Column
     @Enumerated(EnumType.STRING)
     private SNSType postingType;
+
+    @Column
+    private String postingContent;
 
     @Column
     @Enumerated(EnumType.STRING)
@@ -39,11 +39,11 @@ public class Posting extends BaseTimeEntity {
     private String mediaId;
 
     @Builder
-    public Posting(Project project, String postingTitle, SNSType postingType,
+    public Posting(Project project, SNSType postingType, String postingContent,
                    PostingState postingState, String postingLink, String mediaId) {
         this.project       = project;
-        this.postingTitle  = postingTitle;
         this.postingType   = postingType;
+        this.postingContent = postingContent;
         this.postingState  = postingState;
         this.postingLink   = postingLink;
         this.mediaId       = mediaId;

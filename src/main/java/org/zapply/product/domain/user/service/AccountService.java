@@ -221,9 +221,7 @@ public class AccountService {
         }
         return AccountsInfoResponse.of(
                 accounts.stream()
-                        .map(account -> new AccountInfo(
-                                account.getAccountType(),
-                                account.getAccountName()))
+                        .map(AccountInfo::of)
                         .collect(Collectors.toList())
         );
     }

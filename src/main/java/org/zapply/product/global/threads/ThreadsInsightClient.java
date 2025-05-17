@@ -9,10 +9,10 @@ import org.zapply.product.domain.posting.dto.response.ThreadsInsightResponse;
 import org.zapply.product.domain.posting.entity.Posting;
 import org.zapply.product.domain.posting.repository.PostingRepository;
 import org.zapply.product.domain.user.entity.Member;
-import org.zapply.product.domain.user.enumerate.SNSType;
 import org.zapply.product.domain.user.service.AccountService;
 import org.zapply.product.global.apiPayload.exception.CoreException;
 import org.zapply.product.global.apiPayload.exception.GlobalErrorType;
+import org.zapply.product.global.clova.enuermerate.SNSType;
 
 @Slf4j
 @Component

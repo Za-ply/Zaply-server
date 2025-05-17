@@ -1,9 +1,11 @@
 package org.zapply.product.domain.posting.dto.request;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.NotNull;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 public record ThreadsPostingRequest(
@@ -20,6 +22,11 @@ public record ThreadsPostingRequest(
         @NotNull
         @Schema(description = "미디어 텍스트", example = "미디어 텍스트")
         @Max(value = 500, message = "미디어 텍스트는 500자 이내로 입력해주세요")
-        String text
+        String text,
+
+        @NotNull
+        @Schema(description = "예약 실행 시각 (분 단위, ISO-8601)", example = "2025-05-15T18:30")
+        @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm")
+        LocalDateTime scheduledAt
 ) {
 }

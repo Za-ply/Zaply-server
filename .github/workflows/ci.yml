@@ -1,4 +1,4 @@
-name: CI/CD Pipeline with Docker Hub
+name: CI Pipeline with Docker Hub
 
 on:
   push:
@@ -30,9 +30,10 @@ jobs:
           echo "${{ secrets.APPLICATION_PROPERTIES }}" > ./src/main/resources/application.yml
           echo "${{ secrets.APPLICATION_PROPERTIES_OAUTH }}" > ./src/main/resources/application-oauth.yml
           echo "${{ secrets.APPLICATION_PROPERTIES_CLOUD }}" > ./src/main/resources/application-cloud.yml
+          echo "${{ secrets.APPLICATION_PROPERTIES_PROMPT }}" > ./src/main/resources/application-prompt.yml
           echo "${{ secrets.APPLICATION_PROPERTIES_SWAGGER }}" > ./src/main/resources/application-swagger.yml
-          echo "${{ secrets.APPLICATION_PROPERTIES_ACTUATOR }}" > ./src/main/resources/application-actuator.yml
-          
+          echo "${{ secrets.APPLICATION_PROPERTIES_ACTUATOR }}" > ./src/main/resources/application-actuator.yml          
+
       # 4. 도커 빌드 환경 설정 (buildx 설치)
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -55,34 +56,3 @@ jobs:
           # 캐시 활용해서 빌드 속도를 향상시킴
           cache-from: type=gha
           cache-to: type=gha,mode=max
-
-      # 7. EC2로 배포
-      - name: Deploy to NCP
-        env:
-          NCP_PEM_KEY: ${{ secrets.NCP_PEM_KEY }}
-          NCP_HOST: ${{ secrets.NCP_HOST }}
-          NCP_USER: ${{ secrets.NCP_USER }}
-          NCP_PASS:    ${{ secrets.NCP_PASSWORD }}
-          DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
-        run: |
-          echo "$NCP_PEM_KEY" > ncp_key.pem
-          chmod 400 ncp_key.pem
-          
-          ssh -i ncp_key.pem -o StrictHostKeyChecking=no $NCP_USER@$NCP_HOST << EOF
-            # 비밀번호 파이프로 넘기기 (-S: 표준입력에서 비밀번호 읽음)
-            printf "%s\n" "$NCP_PASS" | sudo -S apt update
-            printf "%s\n" "$NCP_PASS" | sudo -S apt install -y docker.io
-          
-            # 기존 컨테이너 중지 및 삭제
-            docker stop zaply || true
-            docker rm zaply || true
-          
-            # 도커 허브에서 이미지 풀
-            docker pull $DOCKER_USERNAME/zaply:latest
-          
-            # 컨테이너 실행
-            docker run -d --name zaply --network root_zaply_network -p 8080:8080 $DOCKER_USERNAME/zaply:latest
-            docker network connect monitoring_loki-net zaply
-          EOF
-          
-          rm ncp_key.pem

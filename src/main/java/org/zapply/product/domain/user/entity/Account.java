@@ -5,7 +5,7 @@ import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.zapply.product.domain.user.enumerate.SNSType;
+import org.zapply.product.global.clova.enuermerate.SNSType;
 
 import java.time.LocalDateTime;
 

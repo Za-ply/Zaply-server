@@ -41,12 +41,13 @@ public class AccountController {
     @Operation(summary = "스레드 계정연동", description = "스레드 계정연동 생성 (accessToken 필요)")
     public void loginThreads(HttpServletResponse response,
                               @AuthenticationPrincipal AuthDetails authDetails) throws IOException {
+        System.out.println(threadsClient.buildAuthorizationUri(authDetails.getMember().getId()));
         response.sendRedirect(threadsClient.buildAuthorizationUri(authDetails.getMember().getId()));
     }
 
     @GetMapping("/threads/link")
     @Operation(summary = "스레드 액세스 토큰 발급", description = "스레드 액세스 토큰 발급 (계정연동 API에서 연결되는 URL)")
-    public ApiResponse<String> signInWithThreads(@RequestParam("code") String code, @RequestParam("state") Long memberId){
+    public ApiResponse<String> signInWithThreads(@RequestParam("code") String code, @RequestParam(value="state") Long memberId){
         return ApiResponse.success(accountService.linkThreads(code, memberId));
     }
 }

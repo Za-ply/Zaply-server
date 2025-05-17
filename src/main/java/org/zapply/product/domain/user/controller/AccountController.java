@@ -7,6 +7,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import org.zapply.product.global.clova.enuermerate.SNSType;
 import org.zapply.product.domain.user.service.AccountService;
 import org.zapply.product.global.apiPayload.response.ApiResponse;
 import org.zapply.product.global.facebook.FacebookClient;
@@ -49,5 +50,12 @@ public class AccountController {
     @Operation(summary = "스레드 액세스 토큰 발급", description = "스레드 액세스 토큰 발급 (계정연동 API에서 연결되는 URL)")
     public ApiResponse<String> signInWithThreads(@RequestParam("code") String code, @RequestParam(value="state") Long memberId){
         return ApiResponse.success(accountService.linkThreads(code, memberId));
+    }
+
+    @GetMapping("/{snsType}/unlink")
+    @Operation(summary = "스레드 계정연동 해제", description = "스레드 계정연동 해제")
+    public ApiResponse<?> unlinkThreads(@PathVariable("snsType") SNSType snsType, @AuthenticationPrincipal AuthDetails authDetails) {
+        accountService.unlinkService(snsType, authDetails.getMember());
+        return ApiResponse.success("계정 연동 해제 성공");
     }
 }

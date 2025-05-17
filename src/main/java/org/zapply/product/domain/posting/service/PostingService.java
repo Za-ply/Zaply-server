@@ -50,6 +50,4 @@ public class PostingService {
     public ThreadsPostingResponse createCarouselMedia(Member member, ThreadsPostingRequest request, Long projectId) {
         return threadsPostingClient.createCarouselMedia(member, request, projectId);
     }
-
-
 }

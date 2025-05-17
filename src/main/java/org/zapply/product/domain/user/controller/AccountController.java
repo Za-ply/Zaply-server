@@ -24,17 +24,10 @@ public class AccountController {
     private final FacebookClient facebookClient;
     private final ThreadsClient threadsClient;
 
-    @GetMapping("/facebook/login")
-    @Operation(summary = "페이스북 계정연동", description = "페이스북 계정연동 url 생성 (accessToken 필요)")
-    public void loginFacebook(HttpServletResponse response,
-                              @AuthenticationPrincipal AuthDetails authDetails) throws IOException {
-        response.sendRedirect(facebookClient.buildAuthorizationUri(authDetails.getMember()));
-    }
-
     @GetMapping("/facebook/link")
     @Operation(summary = "페이스북 액세스 토큰 발급", description = "페이스북 액세스 토큰 발급 (계정연동 API에서 연결되는 URL)")
-    public ApiResponse<String> linkFacebook(@RequestParam("code") String code, @RequestParam("state") Long memberId) {
-        return ApiResponse.success(accountService.linkFacebook(code, memberId));
+    public ApiResponse<String> linkFacebook(@RequestParam("code") String code, @AuthenticationPrincipal AuthDetails authDetails) {
+        return ApiResponse.success(accountService.linkFacebook(code, authDetails.getMember().getId()));
     }
 
     @GetMapping("/threads/login")

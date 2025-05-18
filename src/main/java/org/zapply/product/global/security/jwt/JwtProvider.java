@@ -82,6 +82,7 @@ public class JwtProvider {
      */
     public TokenResponse createToken(Member member) {
         return TokenResponse.of(
+                member.getId(),
                 createAccessToken(member),
                 createRefreshToken(member)
         );
@@ -99,7 +100,7 @@ public class JwtProvider {
         if(getExpirationTime(refreshToken) <= getExpirationTime(accessToken)) {
             refreshToken = createRefreshToken(member);
         }
-        return TokenResponse.of(accessToken, refreshToken);
+        return TokenResponse.of(member.getId(), accessToken, refreshToken);
     }
 
     /**

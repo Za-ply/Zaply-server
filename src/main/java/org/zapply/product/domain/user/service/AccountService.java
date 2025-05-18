@@ -219,7 +219,7 @@ public class AccountService {
         );
     }
 
-    /**
+     /**
      * 계정 삭제
      * @param snsType
      * @param member

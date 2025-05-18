@@ -8,7 +8,7 @@ import org.zapply.product.domain.user.dto.response.AccountInfo;
 import org.zapply.product.domain.user.dto.response.AccountsInfoResponse;
 import org.zapply.product.domain.user.entity.Account;
 import org.zapply.product.domain.user.entity.Member;
-import org.zapply.product.domain.user.enumerate.SNSType;
+import org.zapply.product.global.clova.enuermerate.SNSType;
 import org.zapply.product.domain.user.repository.AccountRepository;
 import org.zapply.product.domain.user.repository.MemberRepository;
 import org.zapply.product.global.apiPayload.exception.CoreException;
@@ -110,22 +110,16 @@ public class AccountService {
      * @return Redis Key
      */
     public String linkThreads(String code, Long memberId) {
-
         Member member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new CoreException(GlobalErrorType.MEMBER_NOT_FOUND));
-
         // 스레드로 액세스 토큰 요청하기
         ThreadsToken shortThreadsToken = threadsClient.getThreadsAccessToken(code, threadsRedirectUrl);
-
         // 스레드에서 장기 액세스 토큰 요청하기
         ThreadsToken longThreadsToken = threadsClient.getLongLivedToken(shortThreadsToken.accessToken());
-
         // 스레드에 있는 사용자 정보 반환
         ThreadsProfile profile = threadsClient.getThreadsProfile(longThreadsToken.accessToken());
-
         // 반환된 정보의 username 추출, key 생성
         String key = "threads:" + "client:" + generateKey(member.getId(), profile.username());
-
         //bussiness logic: account 정보가 이미 있다면 확인 후 해당 account 정보를 반환하고, 없다면 새로운 account 정보를 생성하여 반환
         Account account = accountRepository.findByAccountNameAndAccountTypeAndMember(profile.username(), SNSType.THREADS, member)
                 .map(existingAccount -> {
@@ -147,7 +141,6 @@ public class AccountService {
                     return accountRepository.save(newAccount);
                 });
         vaultClient.saveSecret(threadsPath, key, longThreadsToken.accessToken());
-
         return key;
     }
 
@@ -225,4 +218,24 @@ public class AccountService {
                         .collect(Collectors.toList())
         );
     }
+     
+     /**
+     * 계정 삭제
+     * @param snsType
+     * @param member
+     */
+    public void unlinkService(SNSType snsType, Member member) {
+        Account account = accountRepository.findByAccountTypeAndMember(snsType, member)
+                .orElseThrow(() -> new CoreException(GlobalErrorType.ACCOUNT_NOT_FOUND));
+
+        String vaultPath;
+        switch (snsType) {
+            case FACEBOOK -> vaultPath = facebookPath;
+            case THREADS -> vaultPath = threadsPath;
+            default -> throw new CoreException(GlobalErrorType.SNS_TYPE_NOT_FOUND);
+        }
+            vaultClient.deleteSecretKey(vaultPath, account.getTokenKey());
+            accountRepository.delete(account);
+        }
+
 }

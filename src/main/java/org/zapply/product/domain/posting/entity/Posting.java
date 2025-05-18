@@ -5,7 +5,7 @@ import lombok.*;
 import org.zapply.product.domain.project.entity.Project;
 import org.zapply.product.global.BaseTimeEntity;
 import org.zapply.product.domain.posting.enumerate.PostingState;
-import org.zapply.product.domain.user.enumerate.SNSType;
+import org.zapply.product.global.clova.enuermerate.SNSType;
 
 @Getter
 @Entity

@@ -7,19 +7,23 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.zapply.product.domain.user.dto.response.AccountsInfoResponse;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.zapply.product.domain.user.entity.Account;
 import org.zapply.product.domain.user.entity.Member;
-import org.zapply.product.domain.user.enumerate.SNSType;
 import org.zapply.product.domain.user.repository.AccountRepository;
 import org.zapply.product.global.apiPayload.exception.CoreException;
 import org.zapply.product.global.apiPayload.exception.GlobalErrorType;
+import org.zapply.product.global.clova.enuermerate.SNSType;
 import org.zapply.product.global.vault.VaultClient;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -37,6 +41,39 @@ class AccountServiceTest {
         // set the facebookPath/threadsPath fields manually:
         ReflectionTestUtils.setField(accountService, "facebookPath", "facebook/clients");
         ReflectionTestUtils.setField(accountService, "threadsPath",  "threads/clients");
+    }
+
+    @Test
+    void getAccountsInfo_returnsWrappedDto() {
+        // given
+        Member member = Member.builder()
+                .email("test@gmail.com")
+                .name("테스트유저")
+                .build();
+
+        Account acc = Account.builder()
+                .accountType(SNSType.FACEBOOK)
+                .accountName("fb_test")
+                .email("fb@facebook.com")
+                .tokenKey("vault_key")
+                .member(member)
+                .tokenExpireAt(LocalDateTime.now().plusDays(1))
+                .userId("uid")
+                .build();
+
+        when(accountRepository.findAllByMember(member))
+                .thenReturn(List.of(acc));
+
+        // when
+        AccountsInfoResponse accountsInfoResponse = accountService.getAccountsInfo(member);
+
+        // then
+        assertEquals(1, accountsInfoResponse.totalCount());
+        assertEquals(1, accountsInfoResponse.accounts().size());
+        assertEquals(SNSType.FACEBOOK, accountsInfoResponse.accounts().getFirst().snsType());
+        assertEquals("fb_test", accountsInfoResponse.accounts().getFirst().accountName());
+
+        verify(accountRepository).findAllByMember(member);
     }
 
     @Test

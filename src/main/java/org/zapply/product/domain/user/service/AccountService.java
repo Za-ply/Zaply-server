@@ -4,6 +4,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.zapply.product.domain.user.dto.response.AccountInfo;
+import org.zapply.product.domain.user.dto.response.AccountsInfoResponse;
 import org.zapply.product.domain.user.entity.Account;
 import org.zapply.product.domain.user.entity.Member;
 import org.zapply.product.global.clova.enuermerate.SNSType;
@@ -23,6 +25,8 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.time.LocalDateTime;
 import java.util.Base64;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -200,6 +204,22 @@ public class AccountService {
     }
 
     /**
+     * member에게 연결된 account 조회
+     * @param member
+     */
+    public AccountsInfoResponse getAccountsInfo(Member member) {
+        List<Account> accounts = accountRepository.findAllByMember(member);
+        if (accounts.isEmpty()) {
+                throw new CoreException(GlobalErrorType.ACCOUNT_NOT_FOUND);
+        }
+        return AccountsInfoResponse.of(
+                accounts.stream()
+                        .map(AccountInfo::of)
+                        .collect(Collectors.toList())
+        );
+    }
+
+     /**
      * 계정 삭제
      * @param snsType
      * @param member

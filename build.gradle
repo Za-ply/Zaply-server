@@ -82,6 +82,9 @@ dependencies {
     // hashicorp vault
     implementation 'org.springframework.cloud:spring-cloud-starter-vault-config'
     implementation 'org.springframework.vault:spring-vault-core'
+
+	// clova studio
+	implementation 'org.springframework.cloud:spring-cloud-starter-openfeign'
 }
 
 tasks.named('test') {

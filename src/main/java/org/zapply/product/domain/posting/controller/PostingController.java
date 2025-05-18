@@ -9,7 +9,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.zapply.product.domain.posting.dto.request.ThreadsPostingRequest;
 import org.zapply.product.domain.posting.dto.response.PostingInfoResponse;
-import org.zapply.product.domain.posting.service.PostingService;
+import org.zapply.product.domain.posting.service.PostingQueryService;
 import org.zapply.product.domain.posting.service.PublishPostingService;
 import org.zapply.product.global.apiPayload.response.ApiResponse;
 import org.zapply.product.global.security.AuthDetails;
@@ -24,14 +24,14 @@ import java.util.List;
 public class PostingController {
 
     private final PublishPostingService publishPostingService;
-    private final PostingService postingService;
+    private final PostingQueryService postingQueryService;
 
     // 사용자의 프로젝트에 존재하는 포스팅 조회를 위한 API
     @GetMapping("/{project_id}")
     @Operation(summary = "프로젝트(컨텐츠)별 포스팅 조회", description = "프로젝트(컨텐츠)별 발행된 포스팅 내용 및 예약시간 조회")
     public ApiResponse<List<PostingInfoResponse>> getProjectList(@AuthenticationPrincipal AuthDetails authDetails,
                                                                  @PathVariable("project_id") Long projectId){
-        return ApiResponse.success(postingService.getPostings(authDetails.getMember(), projectId));
+        return ApiResponse.success(postingQueryService.getPostings(authDetails.getMember(), projectId));
     }
 
     @PostMapping("/threads/{project_id}/single")

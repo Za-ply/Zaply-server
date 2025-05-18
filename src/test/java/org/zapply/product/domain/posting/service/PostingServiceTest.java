@@ -39,7 +39,7 @@ class PostingServiceTest {
     private ImageService imageService;
 
     @InjectMocks
-    private PostingService postingService;
+    private PostingQueryService postingQueryService;
 
     @Test
     void whenProjectNotFound_thenThrowsProjectNotFound() {
@@ -48,7 +48,7 @@ class PostingServiceTest {
         given(projectRepository.findById(projectId)).willReturn(Optional.empty());
 
         CoreException exception = assertThrows(CoreException.class,
-                () -> postingService.getPostings(member, projectId));
+                () -> postingQueryService.getPostings(member, projectId));
         assertThat(exception.getErrorType()).isEqualTo(GlobalErrorType.PROJECT_NOT_FOUND);
     }
 
@@ -65,7 +65,7 @@ class PostingServiceTest {
         given(project.getMember()).willReturn(owner);
 
         CoreException exception = assertThrows(CoreException.class,
-                () -> postingService.getPostings(member, projectId));
+                () -> postingQueryService.getPostings(member, projectId));
         assertThat(exception.getErrorType()).isEqualTo(GlobalErrorType.IS_NOT_USER_PROJECT);
     }
 
@@ -85,7 +85,7 @@ class PostingServiceTest {
                 .willReturn(Collections.emptyList());
 
         CoreException exception = assertThrows(CoreException.class,
-                () -> postingService.getPostings(member, projectId));
+                () -> postingQueryService.getPostings(member, projectId));
         assertThat(exception.getErrorType()).isEqualTo(GlobalErrorType.POSTING_NOT_FOUND);
     }
 
@@ -113,7 +113,7 @@ class PostingServiceTest {
         List<String> urls = List.of("url1", "url2");
         given(imageService.getImagesURLByPosting(posting)).willReturn(urls);
 
-        List<PostingInfoResponse> responses = postingService.getPostings(member, projectId);
+        List<PostingInfoResponse> responses = postingQueryService.getPostings(member, projectId);
 
         assertThat(responses).hasSize(1);
         PostingInfoResponse dto = responses.get(0);

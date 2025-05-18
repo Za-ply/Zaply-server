@@ -2,6 +2,7 @@ package org.zapply.product.domain.posting.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import java.time.LocalDateTime;
 import org.zapply.product.domain.project.entity.Project;
 import org.zapply.product.global.BaseTimeEntity;
 import org.zapply.product.domain.posting.enumerate.PostingState;
@@ -34,6 +35,9 @@ public class Posting extends BaseTimeEntity {
 
     @Column
     private String postingLink;
+
+    @Column(columnDefinition = "TIMESTAMP")
+    private LocalDateTime scheduledAt;
 
     @Column
     private String mediaId;

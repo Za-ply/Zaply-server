@@ -16,7 +16,7 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-public class PostingService {
+public class PostingQueryService {
 
     private final PostingRepository postingRepository;
     private final ProjectRepository projectRepository;
@@ -24,7 +24,7 @@ public class PostingService {
 
     public List<PostingInfoResponse> getPostings(Member member, Long projectId) {
 
-        // 해당 유저가 가진 프로젝트인지 확인
+        // 타인 프로젝트 조회 방지
         Project project = projectRepository.findById(projectId)
                 .orElseThrow(() -> new CoreException(GlobalErrorType.PROJECT_NOT_FOUND));
 

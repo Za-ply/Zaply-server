@@ -25,6 +25,9 @@ public class Project extends BaseTimeEntity {
     @Column
     private String projectTitle;
 
+    @Column
+    private String projectThumbnail;
+
     @Builder
     public Project(Member member, String projectTitle) {
         this.member = member;

@@ -6,6 +6,7 @@ import org.zapply.product.domain.posting.entity.Posting;
 import org.zapply.product.domain.posting.enumerate.PostingState;
 import org.zapply.product.global.clova.enuermerate.SNSType;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Builder
@@ -18,6 +19,9 @@ public record PostingInfoResponse(
 
         @Schema(description = "게시물 내용", example = "내용")
         String postingContent,
+
+        @Schema(description = "예약 시간", example = "2023-10-01T12:00:00")
+        LocalDateTime scheduledAt,
 
         @Schema(description = "플랫폼", example = "INSTAGRAM || FACEBOOK || TWITTER")
         SNSType postingType,

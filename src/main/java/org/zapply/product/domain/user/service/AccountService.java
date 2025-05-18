@@ -4,6 +4,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.zapply.product.domain.user.dto.response.AccountInfo;
+import org.zapply.product.domain.user.dto.response.AccountsInfoResponse;
 import org.zapply.product.domain.user.entity.Account;
 import org.zapply.product.domain.user.entity.Member;
 import org.zapply.product.global.clova.enuermerate.SNSType;
@@ -23,6 +25,8 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.time.LocalDateTime;
 import java.util.Base64;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -198,4 +202,40 @@ public class AccountService {
     public boolean isTokenExpired(Account account) {
         return account.getTokenExpireAt() == null || LocalDateTime.now().isAfter(account.getTokenExpireAt());
     }
+
+    /**
+     * member에게 연결된 account 조회
+     * @param member
+     */
+    public AccountsInfoResponse getAccountsInfo(Member member) {
+        List<Account> accounts = accountRepository.findAllByMember(member);
+        if (accounts.isEmpty()) {
+                throw new CoreException(GlobalErrorType.ACCOUNT_NOT_FOUND);
+        }
+        return AccountsInfoResponse.of(
+                accounts.stream()
+                        .map(AccountInfo::of)
+                        .collect(Collectors.toList())
+        );
+    }
+
+     /**
+     * 계정 삭제
+     * @param snsType
+     * @param member
+     */
+    public void unlinkService(SNSType snsType, Member member) {
+        Account account = accountRepository.findByAccountTypeAndMember(snsType, member)
+                .orElseThrow(() -> new CoreException(GlobalErrorType.ACCOUNT_NOT_FOUND));
+
+        String vaultPath;
+        switch (snsType) {
+            case FACEBOOK -> vaultPath = facebookPath;
+            case THREADS -> vaultPath = threadsPath;
+            default -> throw new CoreException(GlobalErrorType.SNS_TYPE_NOT_FOUND);
+        }
+            vaultClient.deleteSecretKey(vaultPath, account.getTokenKey());
+            accountRepository.delete(account);
+        }
+
 }

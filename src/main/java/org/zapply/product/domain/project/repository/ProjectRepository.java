@@ -5,7 +5,9 @@ import org.zapply.product.domain.project.entity.Project;
 import org.zapply.product.domain.user.entity.Member;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface ProjectRepository extends JpaRepository<Project, Long> {
     List<Project> findAllByMemberAndDeletedAtIsNull(Member member);
+    Optional<Project> findByProjectIdAndDeletedAtIsNull(Long projectId);
 }

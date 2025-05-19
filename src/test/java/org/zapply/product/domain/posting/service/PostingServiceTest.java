@@ -10,7 +10,6 @@ import org.zapply.product.domain.posting.entity.Posting;
 import org.zapply.product.domain.posting.repository.PostingRepository;
 import org.zapply.product.domain.project.entity.Project;
 import org.zapply.product.domain.project.repository.ProjectRepository;
-import org.zapply.product.domain.project.service.ImageService;
 import org.zapply.product.domain.user.entity.Member;
 import org.zapply.product.global.apiPayload.exception.CoreException;
 import org.zapply.product.global.apiPayload.exception.GlobalErrorType;

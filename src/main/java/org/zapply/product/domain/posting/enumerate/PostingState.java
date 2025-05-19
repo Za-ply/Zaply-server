@@ -8,7 +8,7 @@ import lombok.RequiredArgsConstructor;
 public enum PostingState {
     PENDING("작성 중"),
     POSTED("발행 완료"),
-    RESERVED("발행 예약");
+    SCHEDULED("발행 예약");
 
     private final String description;
 }

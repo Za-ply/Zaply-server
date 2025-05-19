@@ -90,19 +90,29 @@ public class ThreadsPostingClient {
      * @return mediaId
      */
     private String createMediaContainer(String mediaType, String mediaUrl, String accessToken, String userId, boolean isCarouselItem, String text) {
+        System.out.println("ThreadsPostingClient.createMediaContainer: 진입");
+        System.out.println("mediaType: " + mediaType);
+        System.out.println("mediaUrl: " + mediaUrl);
+        System.out.println("accessToken: " + accessToken);
+        System.out.println("userId: " + userId);
+        System.out.println("isCarouselItem: " + isCarouselItem);
+        System.out.println("text: " + text);
+
         UriComponentsBuilder builder = UriComponentsBuilder
                 .fromHttpUrl(THREADS_API_BASE + "/" + userId + "/threads")
                 .queryParam("media_type", mediaType)
                 .queryParam("image_url", mediaUrl)
                 .queryParam("access_token", accessToken);
 
+        System.out.println("builder: " + builder.toUriString());
         if (isCarouselItem) {
             builder.queryParam("is_carousel_item", "true");
         } else if (text != null) {
             builder.queryParam("text", text);
         }
-
+        System.out.println("builder: " + builder.toUriString());
         URI uri = builder.build().encode().toUri();
+        System.out.println("uri: " + uri);
         return String.valueOf(postToThreadsApi(uri).get("id"));
     }
 
@@ -158,10 +168,13 @@ public class ThreadsPostingClient {
     public ThreadsPostingResponse createSingleMedia(Member member, ThreadsPostingRequest request, Long projectId) {
         try {
             Account account = getThreadsAccount(member); // 스레드 계정 정보 가져오기
+            log.info("Account 조회함 : {}", account);
             String accessToken = getAccessToken(member); // vault에서 가져온 액세스 토큰
+            log.info("엑세스 토큰 가져옴 : {}", accessToken);
             String mediaId = createMediaContainer(request.mediaType(), request.media().getFirst(), accessToken, account.getUserId(), false, request.text());
+            log.info("미디어 컨테이너 생성: {}", mediaId);
             String publishedId = publishMediaContainer(mediaId, accessToken, account.getUserId());
-            log.info("projectId : {}, publishedTime : {}", projectId, LocalDateTime.now());
+            log.info(" 발행됨 publishedId : {}, publishedTime : {}", publishedId, LocalDateTime.now());
             return savePosting(publishedId, projectId, request.mediaType(), request.media().getFirst(), request.text());
         } catch (Exception e) {
             throw new CoreException(GlobalErrorType.THREADS_API_ERROR);

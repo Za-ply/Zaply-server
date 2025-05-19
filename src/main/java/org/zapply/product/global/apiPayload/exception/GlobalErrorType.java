@@ -61,10 +61,7 @@ public enum GlobalErrorType implements ErrorType {
 
     // Posting
     POSTING_NOT_FOUND(HttpStatus.NOT_FOUND, "해당 컨텐츠에 게시글이 존재하지 않습니다."),
-
-    // Posting
-    POSTING_NOT_FOUND(HttpStatus.NOT_FOUND, "존재하지 않는 게시물입니다."),
-
+    POSTING_ALREADY_EXISTS(HttpStatus.BAD_REQUEST, "이미 존재하는 게시글입니다."),
     // Clova
     CLOVA_API_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "Clova API 호출에 실패했습니다."),
     ;

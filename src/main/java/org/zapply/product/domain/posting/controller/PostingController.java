@@ -1,10 +1,13 @@
 package org.zapply.product.domain.posting.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.zapply.product.domain.posting.dto.request.ThreadsPostingRequest;
@@ -15,8 +18,8 @@ import org.zapply.product.domain.posting.dto.response.ThreadsInsightResponse;
 import org.zapply.product.global.apiPayload.response.ApiResponse;
 import org.zapply.product.global.security.AuthDetails;
 import org.zapply.product.global.threads.ThreadsInsightClient;
-import org.zapply.product.global.threads.ThreadsPostingClient;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Slf4j
@@ -75,4 +78,20 @@ public class PostingController {
         return ApiResponse.success(
                 threadsInsightClient.getThreadsInsight(authDetails.getMember(), postingId));
     }
+
+    @PutMapping("/{postingId}/schedule")
+    public ApiResponse<?> updateSchedule(
+            @PathVariable Long postingId,
+            @Valid @RequestBody UpdateScheduleRequest request
+    ) {
+        publishPostingService.updateScheduledTime(postingId, request.scheduledAt());
+        return ApiResponse.success();
+    }
+
+    public record UpdateScheduleRequest(
+            @NotNull
+            @Schema(description = "새로운 예약 시간 (ISO-8601)", example = "2025-05-20T15:30:00")
+            LocalDateTime scheduledAt
+    ) {}
+
 }

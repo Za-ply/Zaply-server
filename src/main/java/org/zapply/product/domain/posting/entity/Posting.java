@@ -42,12 +42,17 @@ public class Posting extends BaseTimeEntity {
     @Column
     private String mediaId;
 
+    public void updateScheduledAt(LocalDateTime scheduledAt) {
+        this.scheduledAt = scheduledAt;
+    }
+
     @Builder
     public Posting(Project project, SNSType postingType, String postingContent,
-                   PostingState postingState, String postingLink, String mediaId) {
+                   PostingState postingState, String postingLink, String mediaId, LocalDateTime scheduledAt) {
         this.project       = project;
         this.postingType   = postingType;
         this.postingContent = postingContent;
+        this.scheduledAt   = scheduledAt;
         this.postingState  = postingState;
         this.postingLink   = postingLink;
         this.mediaId       = mediaId;

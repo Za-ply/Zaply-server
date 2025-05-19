@@ -1,13 +1,10 @@
 package org.zapply.product.domain.posting.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.zapply.product.domain.posting.dto.request.ThreadsPostingRequest;
@@ -19,7 +16,6 @@ import org.zapply.product.global.apiPayload.response.ApiResponse;
 import org.zapply.product.global.security.AuthDetails;
 import org.zapply.product.global.threads.ThreadsInsightClient;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 @Slf4j
@@ -34,64 +30,75 @@ public class PostingController {
     private final ThreadsInsightClient threadsInsightClient;
 
     // 사용자의 프로젝트에 존재하는 포스팅 조회를 위한 API
-    @GetMapping("/{project_id}")
+    @GetMapping("/{projectId}")
     @Operation(summary = "프로젝트(컨텐츠)별 포스팅 조회", description = "프로젝트(컨텐츠)별 발행된 포스팅 내용 및 예약시간 조회")
     public ApiResponse<List<PostingInfoResponse>> getProjectList(@AuthenticationPrincipal AuthDetails authDetails,
-                                                                 @PathVariable("project_id") Long projectId){
+                                                                 @PathVariable("projectId") Long projectId){
         return ApiResponse.success(postingQueryService.getPostings(authDetails.getMember(), projectId));
     }
 
+    @PutMapping("threads/{postingId}/single/schedule")
+    @Operation(summary = "threads single Media 발행 시간 수정하기", description = "SNS타입을 인자로 받아서 발행시점을 수정함")
+    public ApiResponse<?> updateSingleMediaSchedule(@Valid @RequestBody ThreadsPostingRequest request,
+                                         @PathVariable("postingId") Long postingId) {
+        publishPostingService.rescheduleSingleMedia(postingId, request.scheduledAt());
+        return ApiResponse.success();
+    }
 
-    @PostMapping("/threads/{project_id}/single")
-    @Operation(summary = "스레드 미디어 단일 발행하기", description = "단일 미디어를 업로드하는 메소드. (media 하나만 업로드)")
+    @PutMapping("threads/{postingId}/single/content")
+    @Operation(summary = "threads single Media 발행 내용 수정하기", description = "SNS타입을 인자로 받아서 발행 내용을 수정함")
+    public ApiResponse<?> updateSingleMediaContent(@AuthenticationPrincipal AuthDetails authDetails) {
+        return ApiResponse.success();
+    }
+
+    @PutMapping("threads/{postingId}/carousel/schedule")
+    @Operation(summary = "threads carousel 발행 시간 수정하기", description = "SNS타입을 인자로 받아서 발행시점을 수정함")
+    public ApiResponse<?> updateCarouselSchedule(@Valid @RequestBody ThreadsPostingRequest request,
+                                         @PathVariable("postingId") Long postingId) {
+        publishPostingService.rescheduleCarouselMedia(postingId, request.scheduledAt());
+        return ApiResponse.success();
+    }
+
+    @PutMapping("threads/{postingId}/carousel/content")
+    @Operation(summary = "threads carousel 발행 내용 수정하기", description = "SNS타입을 인자로 받아서 발행 내용을 수정함")
+    public ApiResponse<?> updateCarouselContent(@AuthenticationPrincipal AuthDetails authDetails) {
+        return ApiResponse.success();
+    }
+
+    @PostMapping("/threads/{projectId}/single")
+    @Operation(summary = "threads single Media 즉시 발행하기", description = "단일 미디어를 업로드하는 메소드. (media 하나만 업로드)")
     public ApiResponse<?> createSingleMedia(@AuthenticationPrincipal AuthDetails authDetails,
                                             @Valid @RequestBody ThreadsPostingRequest request,
-                                            @PathVariable("project_id") Long projectId) {
+                                            @PathVariable("projectId") Long projectId) {
         if (request.scheduledAt() != null) {
-            publishPostingService.createScheduledSingleMedia(authDetails.getMember(), request, projectId);
+            publishPostingService.scheduleSingleMediaPublish(request, projectId);
         }
         else{
-            publishPostingService.createSingleMedia(authDetails.getMember(), request, projectId);
+            publishPostingService.publishSingleMediaNow(authDetails.getMember(), request, projectId);
         }
         return ApiResponse.success();
     }
 
-    @PostMapping("/threads/{project_id}/carousel")
-    @Operation(summary = "스레드 미디어 케러셀 발행하기", description = "캐러셀 미디어를 업로드하는 메소드. (media 여러개 업로드)")
+    @PostMapping("/threads/{projectId}/carousel")
+    @Operation(summary = "threads carousel 즉시 발행하기", description = "캐러셀 미디어를 업로드하는 메소드. (media 여러개 업로드)")
     public ApiResponse<?> createCarouselMedia(@AuthenticationPrincipal AuthDetails authDetails,
                                               @Valid @RequestBody ThreadsPostingRequest request,
-                                              @PathVariable("project_id") Long projectId) {
+                                              @PathVariable("projectId") Long projectId) {
         if (request.scheduledAt() != null) {
-            publishPostingService.createScheduledCarouselMedia(authDetails.getMember(), request, projectId);
+            publishPostingService.scheduleCarouselMediaPublish(request, projectId);
         }
         else{
-            publishPostingService.createCarouselMedia(authDetails.getMember(), request, projectId);
+            publishPostingService.publishCarouselMediaNow(authDetails.getMember(), request, projectId);
         }
         return ApiResponse.success();
     }
 
 
-    @GetMapping("/threads/{posting_id}/insight")
+    @GetMapping("/threads/{postingId}/insight")
     @Operation(summary = "스레드 게시물 인사이트 조회하기", description = "스레드 게시물의 인사이트를 조회하는 메소드.")
     public ApiResponse<ThreadsInsightResponse> getThreadsInsight(@AuthenticationPrincipal AuthDetails authDetails,
-                                                                 @PathVariable("posting_id") Long postingId) {
+                                                                 @PathVariable("postingId") Long postingId) {
         return ApiResponse.success(
                 threadsInsightClient.getThreadsInsight(authDetails.getMember(), postingId));
     }
-
-    @PutMapping("/{postingId}/schedule")
-    public ApiResponse<?> updateSchedule(
-            @PathVariable Long postingId,
-            @Valid @RequestBody UpdateScheduleRequest request
-    ) {
-        publishPostingService.updateScheduledTime(postingId, request.scheduledAt());
-        return ApiResponse.success();
-    }
-
-    public record UpdateScheduleRequest(
-            @NotNull
-            @Schema(description = "새로운 예약 시간 (ISO-8601)", example = "2025-05-20T15:30:00")
-            LocalDateTime scheduledAt
-    ) {}
-
 }

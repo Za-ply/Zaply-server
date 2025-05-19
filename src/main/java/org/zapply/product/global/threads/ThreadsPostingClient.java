@@ -1,6 +1,5 @@
 package org.zapply.product.global.threads;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
@@ -23,7 +22,6 @@ import org.zapply.product.global.apiPayload.exception.CoreException;
 import org.zapply.product.global.apiPayload.exception.GlobalErrorType;
 
 import java.net.URI;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -35,7 +33,6 @@ public class ThreadsPostingClient {
 
     private static final String THREADS_API_BASE = "https://graph.threads.net/v1.0";
 
-    private final ObjectMapper objectMapper;
     private final AccountRepository accountRepository;
     private final AccountService accountService;
     private final ProjectRepository projectRepository;
@@ -90,14 +87,6 @@ public class ThreadsPostingClient {
      * @return mediaId
      */
     private String createMediaContainer(String mediaType, String mediaUrl, String accessToken, String userId, boolean isCarouselItem, String text) {
-        System.out.println("ThreadsPostingClient.createMediaContainer: 진입");
-        System.out.println("mediaType: " + mediaType);
-        System.out.println("mediaUrl: " + mediaUrl);
-        System.out.println("accessToken: " + accessToken);
-        System.out.println("userId: " + userId);
-        System.out.println("isCarouselItem: " + isCarouselItem);
-        System.out.println("text: " + text);
-
         UriComponentsBuilder builder = UriComponentsBuilder
                 .fromHttpUrl(THREADS_API_BASE + "/" + userId + "/threads")
                 .queryParam("media_type", mediaType)
@@ -110,9 +99,7 @@ public class ThreadsPostingClient {
         } else if (text != null) {
             builder.queryParam("text", text);
         }
-        System.out.println("builder: " + builder.toUriString());
         URI uri = builder.build().encode().toUri();
-        System.out.println("uri: " + uri);
         return String.valueOf(postToThreadsApi(uri).get("id"));
     }
 
@@ -168,14 +155,21 @@ public class ThreadsPostingClient {
     public ThreadsPostingResponse createSingleMedia(Member member, ThreadsPostingRequest request, Long projectId) {
         try {
             Account account = getThreadsAccount(member); // 스레드 계정 정보 가져오기
-            log.info("Account 조회함 : {}", account);
             String accessToken = getAccessToken(member); // vault에서 가져온 액세스 토큰
-            log.info("엑세스 토큰 가져옴 : {}", accessToken);
-            String mediaId = createMediaContainer(request.mediaType(), request.media().getFirst(), accessToken, account.getUserId(), false, request.text());
-            log.info("미디어 컨테이너 생성: {}", mediaId);
+            String mediaId = createMediaContainer(request.mediaType().getDescription(), request.media().getFirst(), accessToken, account.getUserId(), false, request.text());
             String publishedId = publishMediaContainer(mediaId, accessToken, account.getUserId());
-            log.info(" 발행됨 publishedId : {}, publishedTime : {}", publishedId, LocalDateTime.now());
-            return savePosting(publishedId, projectId, request.mediaType(), request.media().getFirst(), request.text());
+            return savePosting(publishedId, projectId, request.mediaType().getDescription(), request.media().getFirst(), request.text());
+        } catch (Exception e) {
+            throw new CoreException(GlobalErrorType.THREADS_API_ERROR);
+        }
+    }
+
+    public String createUpdatedSingleMedia(Member member, ThreadsPostingRequest request) {
+        try {
+            Account account = getThreadsAccount(member); // 스레드 계정 정보 가져오기
+            String accessToken = getAccessToken(member); // vault에서 가져온 액세스 토큰
+            String mediaId = createMediaContainer(request.mediaType().getDescription(), request.media().getFirst(), accessToken, account.getUserId(), false, request.text());
+            return publishMediaContainer(mediaId, accessToken, account.getUserId());
         } catch (Exception e) {
             throw new CoreException(GlobalErrorType.THREADS_API_ERROR);
         }
@@ -195,7 +189,7 @@ public class ThreadsPostingClient {
             List<String> mediaIds = new ArrayList<>();
 
             for (String mediaUrl : request.media()) {
-                String mediaId = createMediaContainer(request.mediaType(), mediaUrl, accessToken, account.getUserId(), true, null);
+                String mediaId = createMediaContainer(request.mediaType().getDescription(), mediaUrl, accessToken, account.getUserId(), true, null);
                 mediaIds.add(mediaId);
             }
 
@@ -211,8 +205,35 @@ public class ThreadsPostingClient {
 
             String containerId = String.valueOf(postToThreadsApi(containerUri).get("id"));
             String publishedId = publishMediaContainer(containerId, accessToken, account.getUserId());
-            log.info("projectId : {}, publishedTime : {}", projectId, LocalDateTime.now());
-            return savePosting(publishedId, projectId, request.mediaType(), request.media().getFirst(), request.text());
+            return savePosting(publishedId, projectId, request.mediaType().getDescription(), request.media().getFirst(), request.text());
+        } catch (Exception e) {
+            throw new CoreException(GlobalErrorType.THREADS_API_ERROR);
+        }
+    }
+
+    public String createUpdatedCarouselMedia(Member member, ThreadsPostingRequest request) {
+        try {
+            Account account = getThreadsAccount(member);
+            String accessToken = getAccessToken(member);
+            List<String> mediaIds = new ArrayList<>();
+
+            for (String mediaUrl : request.media()) {
+                String mediaId = createMediaContainer(request.mediaType().getDescription(), mediaUrl, accessToken, account.getUserId(), true, null);
+                mediaIds.add(mediaId);
+            }
+
+            URI containerUri = UriComponentsBuilder
+                    .fromHttpUrl(THREADS_API_BASE + "/" + account.getUserId() + "/threads")
+                    .queryParam("media_type", "CAROUSEL")
+                    .queryParam("children", String.join(",", mediaIds))
+                    .queryParam("access_token", accessToken)
+                    .queryParam("text", request.text())
+                    .build()
+                    .encode()
+                    .toUri();
+
+            String containerId = String.valueOf(postToThreadsApi(containerUri).get("id"));
+            return publishMediaContainer(containerId, accessToken, account.getUserId());
         } catch (Exception e) {
             throw new CoreException(GlobalErrorType.THREADS_API_ERROR);
         }

@@ -9,6 +9,5 @@ import java.util.Optional;
 
 public interface ScheduledJobRepository extends JpaRepository<ScheduledJob, Long> {
     List<ScheduledJob> findAllByStatus(JobStatus status);
-    Optional<ScheduledJob> findByPostingId(Long postingId);
     Optional<ScheduledJob> findByPostingIdAndStatus(Long jobId, JobStatus status);
 }

@@ -4,14 +4,10 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
-import org.zapply.product.domain.posting.dto.request.ThreadsPostingRequest;
 import org.zapply.product.domain.posting.dto.request.ToneTransferRequest;
-import org.zapply.product.domain.posting.dto.response.ThreadsPostingResponse;
 import org.zapply.product.domain.posting.service.ToneTransferService;
 import org.zapply.product.global.apiPayload.response.ApiResponse;
-import org.zapply.product.global.security.AuthDetails;
 
 @RestController
 @RequestMapping("/v1/posting")

@@ -8,6 +8,8 @@ import org.springframework.transaction.support.TransactionTemplate;
 import org.zapply.product.global.scheduler.entity.ScheduledJob;
 import org.zapply.product.global.scheduler.enumerate.JobStatus;
 import org.zapply.product.global.scheduler.repository.ScheduledJobRepository;
+import org.zapply.product.global.scheduler.repository.SchedulingRepository;
+import org.zapply.product.global.scheduler.service.SchedulingService;
 
 import java.time.LocalDateTime;
 import java.util.concurrent.atomic.AtomicBoolean;

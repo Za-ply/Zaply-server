@@ -1,4 +1,4 @@
-package org.zapply.product.global.scheduler.task;
+package org.zapply.product.global.scheduler.repository;
 
 import org.springframework.stereotype.Repository;
 import java.util.Map;

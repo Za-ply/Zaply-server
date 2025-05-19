@@ -1,6 +1,7 @@
 package org.zapply.product.domain.user.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
@@ -30,8 +31,12 @@ public class AccountController {
 
     @GetMapping("/facebook/link")
     @Operation(summary = "페이스북 액세스 토큰 발급", description = "페이스북 액세스 토큰 발급 (계정연동 API에서 연결되는 URL)")
-    public ApiResponse<String> linkFacebook(@RequestParam("code") String code, @AuthenticationPrincipal AuthDetails authDetails) {
-        return ApiResponse.success(accountService.linkFacebook(code, authDetails.getMember().getId()));
+    public void linkFacebook(@RequestParam("code") String code,
+                             @AuthenticationPrincipal AuthDetails authDetails,
+                             HttpServletResponse response) throws IOException{
+        accountService.linkFacebook(code, authDetails.getMember().getId());
+        String redirectUrl = "http://localhost:3000/facebook/callback";
+        response.sendRedirect(redirectUrl);
     }
 
     @GetMapping("/threads/login")
@@ -53,8 +58,8 @@ public class AccountController {
     @Operation(summary = "스레드 액세스 토큰 발급", description = "스레드 액세스 토큰 발급 (계정연동 API에서 연결되는 URL)")
     public void signInWithThreads(@RequestParam("code") String code, @RequestParam(value="state") Long memberId,
                                   HttpServletResponse response) throws IOException{
-        String vaultKey = accountService.linkThreads(code, memberId);
-        String redirectUrl = "http://localhost::3000/threads/callback + ?vaultKey=" + vaultKey;
+        accountService.linkThreads(code, memberId);
+        String redirectUrl = "http://localhost:3000/threads/callback";
         response.sendRedirect(redirectUrl);
     }
 }

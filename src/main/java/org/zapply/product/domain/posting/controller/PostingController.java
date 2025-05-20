@@ -9,15 +9,13 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.zapply.product.domain.posting.dto.request.ThreadsPostingRequest;
 import org.zapply.product.domain.posting.dto.response.ThreadsInsightResponse;
-import org.zapply.product.domain.posting.dto.response.ThreadsPostingResponse;
 import org.zapply.product.domain.posting.service.PostingQueryService;
 import org.zapply.product.domain.posting.service.PostingService;
 import org.zapply.product.global.apiPayload.response.ApiResponse;
 import org.zapply.product.global.clova.enuermerate.SNSType;
 import org.zapply.product.global.security.AuthDetails;
-import org.zapply.product.global.threads.ThreadsInsightClient;
-import org.zapply.product.global.threads.ThreadsMediaResponse;
-import org.zapply.product.global.threads.ThreadsPostingClient;
+import org.zapply.product.global.snsClients.threads.ThreadsInsightClient;
+import org.zapply.product.global.snsClients.threads.ThreadsPostingClient;
 
 @Slf4j
 @RestController

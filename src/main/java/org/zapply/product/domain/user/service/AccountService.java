@@ -13,12 +13,15 @@ import org.zapply.product.domain.user.repository.AccountRepository;
 import org.zapply.product.domain.user.repository.MemberRepository;
 import org.zapply.product.global.apiPayload.exception.CoreException;
 import org.zapply.product.global.apiPayload.exception.GlobalErrorType;
-import org.zapply.product.global.facebook.FacebookClient;
-import org.zapply.product.global.facebook.FacebookProfile;
-import org.zapply.product.global.facebook.FacebookToken;
-import org.zapply.product.global.threads.ThreadsClient;
-import org.zapply.product.global.threads.ThreadsProfile;
-import org.zapply.product.global.threads.ThreadsToken;
+import org.zapply.product.global.snsClients.facebook.FacebookClient;
+import org.zapply.product.global.snsClients.facebook.FacebookProfile;
+import org.zapply.product.global.snsClients.facebook.FacebookToken;
+import org.zapply.product.global.snsClients.linkedin.LinkedinClient;
+import org.zapply.product.global.snsClients.linkedin.LinkedinToken;
+import org.zapply.product.global.snsClients.linkedin.LinkedinUserInfo;
+import org.zapply.product.global.snsClients.threads.ThreadsClient;
+import org.zapply.product.global.snsClients.threads.ThreadsProfile;
+import org.zapply.product.global.snsClients.threads.ThreadsToken;
 import org.zapply.product.global.vault.VaultClient;
 
 import java.security.MessageDigest;
@@ -36,19 +39,22 @@ public class AccountService {
     private final FacebookClient facebookClient;
     private final ThreadsClient threadsClient;
     private final VaultClient vaultClient;
+    private final LinkedinClient linkedinClient;
     private final MemberRepository memberRepository;
 
     @Value("${spring.security.oauth2.client.registration.facebook.redirect-uri}")
     private String facebookRedirectUrl;
-
     @Value("${spring.security.oauth2.client.registration.threads.redirect-uri}")
     private String threadsRedirectUrl;
+    @Value("${spring.security.oauth2.client.registration.linkedin.redirect-uri}")
+    private String linkedinRedirectUrl;
 
     @Value("${spring.cloud.vault.facebook-path}")
     private String facebookPath;
-
     @Value("${spring.cloud.vault.threads-path}")
     private String threadsPath;
+    @Value("${spring.cloud.vault.linkedin-path}")
+    private String linkedinPath;
 
 
     /**
@@ -144,6 +150,40 @@ public class AccountService {
         return key;
     }
 
+
+    public String linkLinkedin(String code, Long memberId) {
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new CoreException(GlobalErrorType.MEMBER_NOT_FOUND));
+
+        LinkedinToken token = linkedinClient.getLinkedinAccessToken(code);
+        String accessToken = token.accessToken();
+        LinkedinUserInfo profile = linkedinClient.getLinkedinProfile(accessToken);
+        String key = "linkedin:client:" + generateKey(member.getId(), profile.sub());
+
+        Account account = accountRepository
+                .findByAccountNameAndAccountTypeAndMember(profile.name(), SNSType.LINKEDIN, member)
+                .map(existing -> {
+                    existing.updateTokenExpireAt(LocalDateTime.now().plusDays(60));
+                    return accountRepository.save(existing);
+                })
+                .orElseGet(() -> {
+                    Account newAcc = Account.builder()
+                            .accountName(profile.name())
+                            .email(profile.email())  // 이메일 별도 조회 로직이 필요하면 추가
+                            .accountType(SNSType.LINKEDIN)
+                            .tokenKey(key)
+                            .member(member)
+                            .tokenExpireAt(LocalDateTime.now().plusDays(60))
+                            .userId(profile.sub())
+                            .build();
+                    return accountRepository.save(newAcc);
+                });
+
+        // 5) Vault에 토큰 저장
+        vaultClient.saveSecret(linkedinPath, key, accessToken);
+        return key;
+    }
+
     /**
      * Key 생성
      *
@@ -177,6 +217,7 @@ public class AccountService {
         switch (accountType) {
             case FACEBOOK -> vaultPath = facebookPath;
             case THREADS -> vaultPath = threadsPath;
+            case LINKEDIN -> vaultPath = linkedinPath;
             default -> throw new CoreException(GlobalErrorType.SNS_TYPE_NOT_FOUND);
         }
 
@@ -229,6 +270,7 @@ public class AccountService {
         switch (snsType) {
             case FACEBOOK -> vaultPath = facebookPath;
             case THREADS -> vaultPath = threadsPath;
+            case LINKEDIN  -> vaultPath = linkedinPath;
             default -> throw new CoreException(GlobalErrorType.SNS_TYPE_NOT_FOUND);
         }
             vaultClient.deleteSecretKey(vaultPath, account.getTokenKey());

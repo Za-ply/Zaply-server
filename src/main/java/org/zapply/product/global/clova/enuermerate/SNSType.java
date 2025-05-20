@@ -13,7 +13,8 @@ import java.util.List;
 public enum SNSType {
     THREADS("쓰레드"),
     INSTAGRAM("인스타그램"),
-    FACEBOOK("페이스북");
+    FACEBOOK("페이스북"),
+    LINKEDIN("링크드인");
 
     private final String description;
 }

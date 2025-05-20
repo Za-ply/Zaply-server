@@ -24,9 +24,7 @@ import java.net.http.HttpHeaders;
 @RequestMapping("/v1/account")
 @RequiredArgsConstructor
 public class AccountController {
-    private static final Logger log = LoggerFactory.getLogger(AccountController.class);
     private final AccountService accountService;
-    private final FacebookClient facebookClient;
     private final ThreadsClient threadsClient;
 
     @GetMapping("/facebook/link")

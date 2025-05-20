@@ -12,7 +12,7 @@ import org.zapply.product.global.apiPayload.exception.GlobalErrorType;
 
 @Service
 @RequiredArgsConstructor
-public class UserService {
+public class MemberService {
 
     private final MemberRepository memberRepository;
 
@@ -22,8 +22,8 @@ public class UserService {
      * @param authRequest
      * @return Member
      */
-    public Member createUser(Credential credential, AuthRequest authRequest) {
-        memberRepository.findByEmailAndDeletedAtIsNull(authRequest.email()).ifPresent(existingUser -> {
+    public Member createMember(Credential credential, AuthRequest authRequest) {
+        memberRepository.findByEmailAndDeletedAtIsNull(authRequest.email()).ifPresent(existingMember -> {
            throw new CoreException(GlobalErrorType.MEMBER_ALREADY_EXISTS);
         });
         Member member = authRequest.toMember(credential);
@@ -35,7 +35,7 @@ public class UserService {
      * @param email
      * @return Member
      */
-    public Member getUserByEmail(String email) {
+    public Member getMemberByEmail(String email) {
         return memberRepository.findByEmailAndDeletedAtIsNull(email)
                 .orElseThrow(() -> new CoreException(GlobalErrorType.MEMBER_NOT_FOUND));
     }
@@ -46,7 +46,7 @@ public class UserService {
      * @param name
      * @return Member
      */
-    public MemberResponse updateUserName(Member member, String name) {
+    public MemberResponse updateMemberName(Member member, String name) {
         member.updateName(name);
         memberRepository.save(member);
         return MemberResponse.builder()

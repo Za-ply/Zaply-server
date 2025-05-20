@@ -11,9 +11,13 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
 import org.springframework.web.util.UriComponentsBuilder;
+import org.zapply.product.domain.user.dto.response.AccountsInfoResponse;
+import org.zapply.product.domain.user.dto.response.LoginResponse;
+import org.zapply.product.domain.user.dto.response.MemberResponse;
 import org.zapply.product.domain.user.dto.response.TokenResponse;
 import org.zapply.product.domain.user.entity.Member;
 import org.zapply.product.domain.user.repository.MemberRepository;
+import org.zapply.product.domain.user.service.AccountService;
 import org.zapply.product.global.apiPayload.exception.CoreException;
 import org.zapply.product.global.apiPayload.exception.GlobalErrorType;
 import org.zapply.product.global.apiPayload.response.ApiResponse;
@@ -31,6 +35,7 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
 
     private final JwtProvider jwtProvider;
     private final MemberRepository memberRepository;
+    private final AccountService accountService;
     private final RedisClient redisClient;
 
     @Value("${jwt.token.refresh-expiration-time}")
@@ -45,11 +50,8 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
         try{
             CustomOAuth2User oAuth2User = (CustomOAuth2User) authentication.getPrincipal();
 
-            // 필요한 사용자 정보 추출
-            String email = oAuth2User.getEmail();
-            Long memberId = oAuth2User.getMemberId();
-
             // DB에서 회원 조회
+            Long memberId = oAuth2User.getMemberId();
             Member member = memberRepository.findById(memberId)
                     .orElseThrow(() -> {
                         return new CoreException(GlobalErrorType.MEMBER_NOT_FOUND);
@@ -57,25 +59,31 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
 
             // JWT 토큰 생성
             TokenResponse tokenResponse = jwtProvider.createToken(member);
+            redisClient.setValue(member.getEmail(), tokenResponse.refreshToken(), refreshTokenExpirationTime);
+            MemberResponse memberResponse = MemberResponse.of(member);
+            AccountsInfoResponse accountsInfo = accountService.getAccountsInfo(member);
+            LoginResponse loginResponse = LoginResponse.of(tokenResponse, memberResponse, accountsInfo);
 
-            String refreshToken = tokenResponse.refreshToken();
+            Cookie loginResponseCookie = new Cookie("loginResponse", URLEncoder.encode(new ObjectMapper().writeValueAsString(loginResponse), "UTF-8"));
+            loginResponseCookie.setHttpOnly(true);
+            loginResponseCookie.setSecure(true);
+            loginResponseCookie.setPath("/");
+            loginResponseCookie.setMaxAge((int)(accessTokenExpirationTime / 1000));
+            response.addCookie(loginResponseCookie);
 
-            // Redis에 refresh token 저장 (키: 이메일)
-            redisClient.setValue(email, refreshToken, refreshTokenExpirationTime);
+            Cookie accessToken = new Cookie("accessToken", tokenResponse.accessToken());
+            accessToken.setHttpOnly(true);
+            accessToken.setSecure(true);
+            accessToken.setPath("/");
+            accessToken.setMaxAge((int)(accessTokenExpirationTime / 1000));
+            response.addCookie(accessToken);
 
-            Cookie accessCookie = new Cookie("accessToken", tokenResponse.accessToken());
-            accessCookie.setHttpOnly(true);
-            accessCookie.setSecure(true);
-            accessCookie.setPath("/");
-            accessCookie.setMaxAge((int)(accessTokenExpirationTime / 1000));
-            response.addCookie(accessCookie);
-
-            Cookie refreshCookie = new Cookie("refreshToken", tokenResponse.refreshToken());
-            refreshCookie.setHttpOnly(true);
-            refreshCookie.setSecure(true);
-            refreshCookie.setPath("/");
-            refreshCookie.setMaxAge((int)(refreshTokenExpirationTime / 1000));
-            response.addCookie(refreshCookie);
+            Cookie refreshToken = new Cookie("refreshToken", tokenResponse.refreshToken());
+            refreshToken.setHttpOnly(true);
+            refreshToken.setSecure(true);
+            refreshToken.setPath("/");
+            refreshToken.setMaxAge((int)(refreshTokenExpirationTime / 1000));
+            response.addCookie(refreshToken);
 
             String targetUrl = "http://localhost:3000/google/callback";
             getRedirectStrategy().sendRedirect(request, response, targetUrl);

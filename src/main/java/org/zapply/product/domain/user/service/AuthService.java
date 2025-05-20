@@ -6,6 +6,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.zapply.product.domain.user.dto.request.AuthRequest;
 import org.zapply.product.domain.user.dto.request.SignInRequest;
+import org.zapply.product.domain.user.dto.response.AccountsInfoResponse;
+import org.zapply.product.domain.user.dto.response.LoginResponse;
 import org.zapply.product.domain.user.dto.response.TokenResponse;
 import org.zapply.product.domain.user.dto.response.MemberResponse;
 import org.zapply.product.domain.user.entity.Credential;
@@ -25,6 +27,7 @@ public class AuthService {
     private final JwtProvider jwtProvider;
     private final RedisClient redisClient;
     private final MemberRepository memberRepository;
+    private final AccountService accountService;
 
     @Value("${jwt.token.refresh-expiration-time}")
     private Long refreshTokenExpirationTime;
@@ -48,14 +51,14 @@ public class AuthService {
      * @return TokenResponse
      */
     @Transactional
-    public TokenResponse signIn(SignInRequest signInRequest) {
+    public LoginResponse signIn(SignInRequest signInRequest) {
         Member member = userService.getUserByEmail(signInRequest.email());
         credentialService.checkPassword(member, signInRequest.password());
-
         TokenResponse tokenResponse = jwtProvider.createToken(member);
         redisClient.setValue(member.getEmail(), tokenResponse.refreshToken(), refreshTokenExpirationTime);
-
-        return tokenResponse;
+        MemberResponse memberResponse = MemberResponse.of(member);
+        AccountsInfoResponse accountsInfo = accountService.getAccountsInfo(member);
+        return LoginResponse.of(tokenResponse, memberResponse, accountsInfo);
     }
 
     /**

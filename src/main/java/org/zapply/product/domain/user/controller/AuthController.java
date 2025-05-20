@@ -10,6 +10,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.zapply.product.domain.user.dto.request.AuthRequest;
 import org.zapply.product.domain.user.dto.request.SignInRequest;
+import org.zapply.product.domain.user.dto.response.LoginResponse;
 import org.zapply.product.domain.user.dto.response.MemberResponse;
 import org.zapply.product.domain.user.dto.response.TokenResponse;
 import org.zapply.product.domain.user.service.AccountService;
@@ -39,7 +40,7 @@ public class AuthController {
 
     @PostMapping("/sign-in")
     @Operation(summary = "로그인", description = "로그인 기능")
-    public ApiResponse<TokenResponse> signIn(@Valid @RequestBody SignInRequest signInRequest) {
+    public ApiResponse<LoginResponse> signIn(@Valid @RequestBody SignInRequest signInRequest) {
         return ApiResponse.success(authService.signIn(signInRequest));
     }
 
@@ -79,3 +80,4 @@ public class AuthController {
         return ApiResponse.success(accountService.getAccountsInfo(authDetails.getMember()));
     }
 }
+

@@ -13,6 +13,7 @@ import org.zapply.product.domain.posting.service.PostingQueryService;
 import org.zapply.product.domain.posting.service.PublishPostingService;
 import org.zapply.product.domain.posting.dto.response.ThreadsInsightResponse;
 import org.zapply.product.global.apiPayload.response.ApiResponse;
+import org.zapply.product.global.clova.enuermerate.SNSType;
 import org.zapply.product.global.security.AuthDetails;
 import org.zapply.product.global.threads.ThreadsInsightClient;
 
@@ -35,6 +36,19 @@ public class PostingController {
     public ApiResponse<List<PostingInfoResponse>> getProjectList(@AuthenticationPrincipal AuthDetails authDetails,
                                                                  @PathVariable("projectId") Long projectId){
         return ApiResponse.success(postingQueryService.getPostings(authDetails.getMember(), projectId));
+    }
+    @PostMapping("/threads/{projectId}/single")
+    @Operation(summary = "threads single Media 즉시 발행하기", description = "단일 미디어를 업로드하는 메소드. (media 하나만 업로드)")
+    public ApiResponse<?> createSingleMedia(@AuthenticationPrincipal AuthDetails authDetails,
+                                            @Valid @RequestBody ThreadsPostingRequest request,
+                                            @PathVariable("projectId") Long projectId) {
+        if (request.scheduledAt() != null) {
+            publishPostingService.scheduleSingleMediaPublish(request, projectId);
+        }
+        else{
+            publishPostingService.publishSingleMediaNow(authDetails.getMember(), request, projectId);
+        }
+        return ApiResponse.success();
     }
 
     @PutMapping("threads/{postingId}/single/schedule")
@@ -65,20 +79,6 @@ public class PostingController {
         return ApiResponse.success();
     }
 
-    @PostMapping("/threads/{projectId}/single")
-    @Operation(summary = "threads single Media 즉시 발행하기", description = "단일 미디어를 업로드하는 메소드. (media 하나만 업로드)")
-    public ApiResponse<?> createSingleMedia(@AuthenticationPrincipal AuthDetails authDetails,
-                                            @Valid @RequestBody ThreadsPostingRequest request,
-                                            @PathVariable("projectId") Long projectId) {
-        if (request.scheduledAt() != null) {
-            publishPostingService.scheduleSingleMediaPublish(request, projectId);
-        }
-        else{
-            publishPostingService.publishSingleMediaNow(authDetails.getMember(), request, projectId);
-        }
-        return ApiResponse.success();
-    }
-
     @PostMapping("/threads/{projectId}/carousel")
     @Operation(summary = "threads carousel 즉시 발행하기", description = "캐러셀 미디어를 업로드하는 메소드. (media 여러개 업로드)")
     public ApiResponse<?> createCarouselMedia(@AuthenticationPrincipal AuthDetails authDetails,
@@ -100,5 +100,30 @@ public class PostingController {
                                                                  @PathVariable("postingId") Long postingId) {
         return ApiResponse.success(
                 threadsInsightClient.getThreadsInsight(authDetails.getMember(), postingId));
+    }
+
+    @GetMapping("/threads/my-media")
+    @Operation(summary = "SNS 게시물 리스트 조회하기", description = "SNS 게시물 리스트를 조회하는 메소드.")
+    public ApiResponse<?> getThreadsMedia(@RequestParam("snsType") SNSType snsType,
+                                                             @AuthenticationPrincipal AuthDetails authDetails) {
+        switch (snsType) {
+            case THREADS:
+                return ApiResponse.success(postingQueryService.getAllThreadsMedia(authDetails.getMember()));
+            default:
+                return ApiResponse.success(null);
+        }
+    }
+
+    @GetMapping("/threads/media")
+    @Operation(summary = "SNS 단일 게시물 조회하기", description = "SNS 단일 게시물을 조회하는 메소드.")
+    public ApiResponse<?> getSingleThreadsMedia(@RequestParam("snsType") SNSType snsType,
+                                                @RequestParam("mediaId") String mediaId,
+                                                @AuthenticationPrincipal AuthDetails authDetails) {
+        switch (snsType) {
+            case THREADS:
+                return ApiResponse.success(postingQueryService.getSingleThreadsMedia(authDetails.getMember(), mediaId));
+            default:
+                return ApiResponse.success(null);
+        }
     }
 }

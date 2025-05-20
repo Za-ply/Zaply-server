@@ -24,7 +24,6 @@ public record AuthDetails(Member member) implements UserDetails {
     public Member getMember() {
         return member;
     }
-
     @Override
     public String getPassword() {
         return "";

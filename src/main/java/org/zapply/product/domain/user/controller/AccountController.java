@@ -1,10 +1,12 @@
 package org.zapply.product.domain.user.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.zapply.product.global.clova.enuermerate.SNSType;
@@ -15,6 +17,8 @@ import org.zapply.product.global.security.AuthDetails;
 import org.zapply.product.global.threads.ThreadsClient;
 
 import java.io.IOException;
+import java.net.URI;
+import java.net.http.HttpHeaders;
 
 @RestController
 @RequestMapping("/v1/account")
@@ -27,8 +31,12 @@ public class AccountController {
 
     @GetMapping("/facebook/link")
     @Operation(summary = "페이스북 액세스 토큰 발급", description = "페이스북 액세스 토큰 발급 (계정연동 API에서 연결되는 URL)")
-    public ApiResponse<String> linkFacebook(@RequestParam("code") String code, @AuthenticationPrincipal AuthDetails authDetails) {
-        return ApiResponse.success(accountService.linkFacebook(code, authDetails.getMember().getId()));
+    public void linkFacebook(@RequestParam("code") String code,
+                             @AuthenticationPrincipal AuthDetails authDetails,
+                             HttpServletResponse response) throws IOException{
+        accountService.linkFacebook(code, authDetails.getMember().getId());
+        String redirectUrl = "http://localhost:3000/facebook/callback";
+        response.sendRedirect(redirectUrl);
     }
 
     @GetMapping("/threads/login")
@@ -39,16 +47,19 @@ public class AccountController {
         response.sendRedirect(threadsClient.buildAuthorizationUri(authDetails.getMember().getId()));
     }
 
-    @GetMapping("/threads/link")
-    @Operation(summary = "스레드 액세스 토큰 발급", description = "스레드 액세스 토큰 발급 (계정연동 API에서 연결되는 URL)")
-    public ApiResponse<String> signInWithThreads(@RequestParam("code") String code, @RequestParam(value="state") Long memberId){
-        return ApiResponse.success(accountService.linkThreads(code, memberId));
-    }
-
     @GetMapping("/{snsType}/unlink")
     @Operation(summary = "스레드 계정연동 해제", description = "스레드 계정연동 해제")
     public ApiResponse<?> unlinkThreads(@PathVariable("snsType") SNSType snsType, @AuthenticationPrincipal AuthDetails authDetails) {
         accountService.unlinkService(snsType, authDetails.getMember());
         return ApiResponse.success("계정 연동 해제 성공");
+    }
+
+    @GetMapping("/threads/link")
+    @Operation(summary = "스레드 액세스 토큰 발급", description = "스레드 액세스 토큰 발급 (계정연동 API에서 연결되는 URL)")
+    public void signInWithThreads(@RequestParam("code") String code, @RequestParam(value="state") Long memberId,
+                                  HttpServletResponse response) throws IOException{
+        accountService.linkThreads(code, memberId);
+        String redirectUrl = "http://localhost:3000/threads/callback";
+        response.sendRedirect(redirectUrl);
     }
 }

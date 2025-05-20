@@ -1,9 +1,12 @@
 package org.zapply.product.domain.user.dto.response;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
 import org.zapply.product.domain.user.entity.Member;
 
+
+@JsonInclude(JsonInclude.Include.NON_NULL)
 @Builder
 public record MemberResponse(
         @Schema(description = "회원 ID", example = "1")

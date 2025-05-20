@@ -55,4 +55,8 @@ public class Member extends BaseTimeEntity {
         this.agreement = agreement;
         this.loginType = LoginType.DEFAULT;
     }
+
+    public void updateName(String name) {
+        this.name = name;
+    }
 }

@@ -3,6 +3,7 @@ package org.zapply.product.domain.user.service;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.zapply.product.domain.user.dto.request.AuthRequest;
+import org.zapply.product.domain.user.dto.response.MemberResponse;
 import org.zapply.product.domain.user.entity.Credential;
 import org.zapply.product.domain.user.entity.Member;
 import org.zapply.product.domain.user.repository.MemberRepository;
@@ -37,5 +38,19 @@ public class UserService {
     public Member getUserByEmail(String email) {
         return memberRepository.findByEmailAndDeletedAtIsNull(email)
                 .orElseThrow(() -> new CoreException(GlobalErrorType.MEMBER_NOT_FOUND));
+    }
+
+    /**
+     * 사용자 이름을 수정하는 메서드
+     * @param member
+     * @param name
+     * @return Member
+     */
+    public MemberResponse updateUserName(Member member, String name) {
+        member.updateName(name);
+        memberRepository.save(member);
+        return MemberResponse.builder()
+                .name(member.getName())
+                .build();
     }
 }

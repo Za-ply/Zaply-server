@@ -209,9 +209,6 @@ public class AccountService {
      */
     public AccountsInfoResponse getAccountsInfo(Member member) {
         List<Account> accounts = accountRepository.findAllByMember(member);
-        if (accounts.isEmpty()) {
-                throw new CoreException(GlobalErrorType.ACCOUNT_NOT_FOUND);
-        }
         return AccountsInfoResponse.of(
                 accounts.stream()
                         .map(AccountInfo::of)

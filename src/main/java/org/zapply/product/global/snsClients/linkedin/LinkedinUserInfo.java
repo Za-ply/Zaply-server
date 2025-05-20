@@ -1,4 +1,4 @@
-package org.zapply.product.global.linkedin;
+package org.zapply.product.global.snsClients.linkedin;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonUnwrapped;

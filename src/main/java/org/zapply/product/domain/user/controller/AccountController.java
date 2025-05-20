@@ -9,9 +9,9 @@ import org.springframework.web.bind.annotation.*;
 import org.zapply.product.global.clova.enuermerate.SNSType;
 import org.zapply.product.domain.user.service.AccountService;
 import org.zapply.product.global.apiPayload.response.ApiResponse;
-import org.zapply.product.global.linkedin.LinkedinClient;
+import org.zapply.product.global.snsClients.linkedin.LinkedinClient;
 import org.zapply.product.global.security.AuthDetails;
-import org.zapply.product.global.threads.ThreadsClient;
+import org.zapply.product.global.snsClients.threads.ThreadsClient;
 
 import java.io.IOException;
 

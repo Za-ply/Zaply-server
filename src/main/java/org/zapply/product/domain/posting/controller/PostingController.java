@@ -14,8 +14,8 @@ import org.zapply.product.domain.posting.service.PostingService;
 import org.zapply.product.global.apiPayload.response.ApiResponse;
 import org.zapply.product.global.clova.enuermerate.SNSType;
 import org.zapply.product.global.security.AuthDetails;
-import org.zapply.product.global.threads.ThreadsInsightClient;
-import org.zapply.product.global.threads.ThreadsPostingClient;
+import org.zapply.product.global.snsClients.threads.ThreadsInsightClient;
+import org.zapply.product.global.snsClients.threads.ThreadsPostingClient;
 
 @Slf4j
 @RestController

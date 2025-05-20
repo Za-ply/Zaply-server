@@ -7,9 +7,7 @@ import org.zapply.product.domain.posting.dto.request.ThreadsPostingRequest;
 import org.zapply.product.domain.posting.dto.response.ThreadsPostingResponse;
 import org.zapply.product.domain.user.entity.Member;
 import org.zapply.product.global.scheduler.service.JobScheduler;
-import org.zapply.product.global.threads.ThreadsPostingClient;
-
-import java.time.LocalDateTime;
+import org.zapply.product.global.snsClients.threads.ThreadsPostingClient;
 
 @Slf4j
 @Service

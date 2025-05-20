@@ -6,6 +6,7 @@ import org.zapply.product.domain.user.dto.request.AuthRequest;
 import org.zapply.product.domain.user.dto.response.MemberResponse;
 import org.zapply.product.domain.user.entity.Credential;
 import org.zapply.product.domain.user.entity.Member;
+import org.zapply.product.domain.user.repository.CredentialRepository;
 import org.zapply.product.domain.user.repository.MemberRepository;
 import org.zapply.product.global.apiPayload.exception.CoreException;
 import org.zapply.product.global.apiPayload.exception.GlobalErrorType;
@@ -15,6 +16,7 @@ import org.zapply.product.global.apiPayload.exception.GlobalErrorType;
 public class MemberService {
 
     private final MemberRepository memberRepository;
+    private final CredentialRepository credentialRepository;
 
     /**
      * Credential을 생성하고 저장하는 메서드
@@ -44,7 +46,7 @@ public class MemberService {
      * 사용자 이름을 수정하는 메서드
      * @param member
      * @param name
-     * @return Member
+     * @return MemberResponse
      */
     public MemberResponse updateMemberName(Member member, String name) {
         member.updateName(name);
@@ -52,5 +54,16 @@ public class MemberService {
         return MemberResponse.builder()
                 .name(member.getName())
                 .build();
+    }
+
+    /**
+     * 사용자 비밀번호를 수정하는 메서드
+     * @param member
+     * @param password
+     * @return MemberResponse
+     */
+    public void updateMemberPassword(Member member, String password) {
+        member.getCredential().updatePassword(password);
+        credentialRepository.save(member.getCredential());
     }
 }

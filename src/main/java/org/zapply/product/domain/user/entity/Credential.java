@@ -22,4 +22,8 @@ public class Credential {
     public Credential(String hashedPassword) {
         this.password = hashedPassword;
     }
+
+    public void updatePassword(String password) {
+        this.password = password;
+    }
 }

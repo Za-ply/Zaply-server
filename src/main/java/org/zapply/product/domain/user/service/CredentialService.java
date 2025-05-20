@@ -36,12 +36,14 @@ public class CredentialService {
      * 비밀번호를 확인하는 메서드
      * @param member
      * @param password
+     * @return boolean
      */
-    public void checkPassword(Member member, String password) {
+    public boolean checkPassword(Member member, String password) {
         Credential credential = member.getCredential();
 
         if(!passwordEncoder.matches(password, credential.getPassword())) {
             throw new CoreException(GlobalErrorType.PASSWORD_MISMATCH);
         }
+        return true;
     }
 }

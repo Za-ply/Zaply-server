@@ -8,7 +8,8 @@ import lombok.RequiredArgsConstructor;
 public enum JobStatus {
     SCHEDULED("예약됨"),
     COMPLETED("발행됨"),
-    FAILED("실패함");
+    FAILED("실패함"),
+    CANCELED("취소됨");
 
     private final String description;
 }

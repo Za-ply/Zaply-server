@@ -64,7 +64,6 @@ public class ClovaService {
             ClovaResponse clovaResponse = clovaAiClient.getCompletions(authorizationHeader, modelName, clovaRequset);
             return clovaResponse.result().message().content();
         } catch (Exception e) {
-            log.error("변환 중 오류 발생 요청 데이터: {}", userPrompt, e);
             throw new CoreException(GlobalErrorType.CLOVA_API_ERROR);
         }
     }

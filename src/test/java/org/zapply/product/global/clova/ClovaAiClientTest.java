@@ -56,7 +56,9 @@ class ClovaAiClientTest {
                 "오늘은 정말 기분이 좋다. 날씨도 좋고, 친구들과 함께하는 시간이 너무 즐거워."
         );
         String storyLines = clovaService.TransferToSNSTone(toneTransferRequest);
+        System.out.println("-------------------------THREADS-------------------------");
         System.out.println(storyLines);
+        System.out.println("-------------------------THREADS-------------------------");
     }
 
     @Test
@@ -66,7 +68,9 @@ class ClovaAiClientTest {
                 "오늘은 정말 기분이 좋다. 날씨도 좋고, 친구들과 함께하는 시간이 너무 즐거워."
         );
         String storyLines = clovaService.TransferToSNSTone(toneTransferRequest);
+        System.out.println("-------------------------INSTA-------------------------");
         System.out.println(storyLines);
+        System.out.println("-------------------------INSTA-------------------------");
     }
 
     @Test
@@ -76,7 +80,9 @@ class ClovaAiClientTest {
                 "오늘은 정말 기분이 좋다. 날씨도 좋고, 친구들과 함께하는 시간이 너무 즐거워."
         );
         String storyLines = clovaService.TransferToSNSTone(toneTransferRequest);
+        System.out.println("-------------------------FACEBOOK-------------------------");;
         System.out.println(storyLines);
+        System.out.println("-------------------------FACEBOOK-------------------------");;
     }
 
     @Test

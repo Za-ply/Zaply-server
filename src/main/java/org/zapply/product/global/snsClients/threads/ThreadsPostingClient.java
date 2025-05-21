@@ -1,6 +1,5 @@
 package org.zapply.product.global.snsClients.threads;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
@@ -23,7 +22,6 @@ import org.zapply.product.global.apiPayload.exception.CoreException;
 import org.zapply.product.global.apiPayload.exception.GlobalErrorType;
 
 import java.net.URI;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -35,7 +33,6 @@ public class ThreadsPostingClient {
 
     private static final String THREADS_API_BASE = "https://graph.threads.net/v1.0";
 
-    private final ObjectMapper objectMapper;
     private final AccountRepository accountRepository;
     private final AccountService accountService;
     private final ProjectRepository projectRepository;
@@ -96,12 +93,12 @@ public class ThreadsPostingClient {
                 .queryParam("image_url", mediaUrl)
                 .queryParam("access_token", accessToken);
 
+        System.out.println("builder: " + builder.toUriString());
         if (isCarouselItem) {
             builder.queryParam("is_carousel_item", "true");
         } else if (text != null) {
             builder.queryParam("text", text);
         }
-
         URI uri = builder.build().encode().toUri();
         return String.valueOf(postToThreadsApi(uri).get("id"));
     }
@@ -139,7 +136,6 @@ public class ThreadsPostingClient {
                 .orElseThrow(() -> new CoreException(GlobalErrorType.PROJECT_NOT_FOUND));
         Posting posting = Posting.builder()
                 .postingLink("")
-                .postingTitle("")
                 .postingType(SNSType.THREADS)
                 .postingState(PostingState.POSTED)
                 .project(project)
@@ -160,10 +156,20 @@ public class ThreadsPostingClient {
         try {
             Account account = getThreadsAccount(member); // 스레드 계정 정보 가져오기
             String accessToken = getAccessToken(member); // vault에서 가져온 액세스 토큰
-            String mediaId = createMediaContainer(request.mediaType(), request.media().getFirst(), accessToken, account.getUserId(), false, request.text());
+            String mediaId = createMediaContainer(request.mediaType().getDescription(), request.media().getFirst(), accessToken, account.getUserId(), false, request.text());
             String publishedId = publishMediaContainer(mediaId, accessToken, account.getUserId());
-            log.info("projectId : {}, publishedTime : {}", projectId, LocalDateTime.now());
-            return savePosting(publishedId, projectId, request.mediaType(), request.media().getFirst(), request.text());
+            return savePosting(publishedId, projectId, request.mediaType().getDescription(), request.media().getFirst(), request.text());
+        } catch (Exception e) {
+            throw new CoreException(GlobalErrorType.THREADS_API_ERROR);
+        }
+    }
+
+    public String createUpdatedSingleMedia(Member member, ThreadsPostingRequest request) {
+        try {
+            Account account = getThreadsAccount(member); // 스레드 계정 정보 가져오기
+            String accessToken = getAccessToken(member); // vault에서 가져온 액세스 토큰
+            String mediaId = createMediaContainer(request.mediaType().getDescription(), request.media().getFirst(), accessToken, account.getUserId(), false, request.text());
+            return publishMediaContainer(mediaId, accessToken, account.getUserId());
         } catch (Exception e) {
             throw new CoreException(GlobalErrorType.THREADS_API_ERROR);
         }
@@ -183,7 +189,7 @@ public class ThreadsPostingClient {
             List<String> mediaIds = new ArrayList<>();
 
             for (String mediaUrl : request.media()) {
-                String mediaId = createMediaContainer(request.mediaType(), mediaUrl, accessToken, account.getUserId(), true, null);
+                String mediaId = createMediaContainer(request.mediaType().getDescription(), mediaUrl, accessToken, account.getUserId(), true, null);
                 mediaIds.add(mediaId);
             }
 
@@ -199,8 +205,35 @@ public class ThreadsPostingClient {
 
             String containerId = String.valueOf(postToThreadsApi(containerUri).get("id"));
             String publishedId = publishMediaContainer(containerId, accessToken, account.getUserId());
-            log.info("projectId : {}, publishedTime : {}", projectId, LocalDateTime.now());
-            return savePosting(publishedId, projectId, request.mediaType(), request.media().getFirst(), request.text());
+            return savePosting(publishedId, projectId, request.mediaType().getDescription(), request.media().getFirst(), request.text());
+        } catch (Exception e) {
+            throw new CoreException(GlobalErrorType.THREADS_API_ERROR);
+        }
+    }
+
+    public String createUpdatedCarouselMedia(Member member, ThreadsPostingRequest request) {
+        try {
+            Account account = getThreadsAccount(member);
+            String accessToken = getAccessToken(member);
+            List<String> mediaIds = new ArrayList<>();
+
+            for (String mediaUrl : request.media()) {
+                String mediaId = createMediaContainer(request.mediaType().getDescription(), mediaUrl, accessToken, account.getUserId(), true, null);
+                mediaIds.add(mediaId);
+            }
+
+            URI containerUri = UriComponentsBuilder
+                    .fromHttpUrl(THREADS_API_BASE + "/" + account.getUserId() + "/threads")
+                    .queryParam("media_type", "CAROUSEL")
+                    .queryParam("children", String.join(",", mediaIds))
+                    .queryParam("access_token", accessToken)
+                    .queryParam("text", request.text())
+                    .build()
+                    .encode()
+                    .toUri();
+
+            String containerId = String.valueOf(postToThreadsApi(containerUri).get("id"));
+            return publishMediaContainer(containerId, accessToken, account.getUserId());
         } catch (Exception e) {
             throw new CoreException(GlobalErrorType.THREADS_API_ERROR);
         }

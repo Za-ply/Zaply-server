@@ -32,12 +32,11 @@ public class PostingQueryService {
     public List<PostingInfoResponse> getPostings(Member member, Long projectId) {
 
         // 타인 프로젝트 조회 방지
-        Project project = projectRepository.findById(projectId)
-                .orElseThrow(() -> new CoreException(GlobalErrorType.PROJECT_NOT_FOUND));
-
-        if (!project.getMember().getId().equals(member.getId())) {
+        boolean isUserProject = projectRepository.existsByIdAndMemberId(projectId, member.getId());
+        if (!isUserProject) {
             throw new CoreException(GlobalErrorType.IS_NOT_USER_PROJECT);
         }
+
 
         List<Posting> postings = postingRepository.findAllByProject_ProjectIdAndDeletedAtIsNull(projectId);
         if (postings.isEmpty()) {throw new CoreException(GlobalErrorType.POSTING_NOT_FOUND);}

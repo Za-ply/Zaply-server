@@ -2,6 +2,8 @@ package org.zapply.product.global.scheduler.service;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.zapply.product.global.apiPayload.exception.CoreException;
+import org.zapply.product.global.apiPayload.exception.GlobalErrorType;
 import org.zapply.product.global.scheduler.entity.ScheduledJob;
 import org.zapply.product.global.scheduler.enumerate.JobStatus;
 import org.zapply.product.global.scheduler.repository.ScheduledJobRepository;
@@ -52,7 +54,7 @@ public class SchedulingService {
 
     public void cancelTask(Long postingId) {
         ScheduledJob job = jobRepo.findByPostingIdAndStatus(postingId, JobStatus.SCHEDULED)
-                .orElseThrow(() -> new IllegalArgumentException("No scheduled job for posting: " + postingId));
+                .orElseThrow(() -> new CoreException(GlobalErrorType.SCHEDULED_JOB_NOT_FOUND));
 
         Long jobId = job.getId();
         ScheduledFuture<?> future = schedulingRepo.remove(jobId);

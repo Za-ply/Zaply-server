@@ -32,7 +32,7 @@ public class PostingQueryService {
     public List<PostingInfoResponse> getPostings(Member member, Long projectId) {
 
         // 타인 프로젝트 조회 방지
-        boolean isUserProject = projectRepository.existsByProjectIdAndMember_MemberId(projectId, member.getId());
+        boolean isUserProject = projectRepository.existsByProjectIdAndMember_Id(projectId, member.getId());
         if (!isUserProject) {
             throw new CoreException(GlobalErrorType.IS_NOT_USER_PROJECT);
         }

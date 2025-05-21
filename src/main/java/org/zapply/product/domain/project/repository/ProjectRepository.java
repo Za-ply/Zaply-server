@@ -10,5 +10,5 @@ import java.util.Optional;
 public interface ProjectRepository extends JpaRepository<Project, Long> {
     List<Project> findAllByMemberAndDeletedAtIsNull(Member member);
     Optional<Project> findByProjectIdAndDeletedAtIsNull(Long projectId);
-    boolean existsByProjectIdAndMember_MemberId(Long projectId, Long memberId);
+    boolean existsByProjectIdAndMember_Id(Long projectId, Long memberId);
 }

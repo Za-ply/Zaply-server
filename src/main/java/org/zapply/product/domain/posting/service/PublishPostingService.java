@@ -17,7 +17,7 @@ import org.zapply.product.global.apiPayload.exception.CoreException;
 import org.zapply.product.global.apiPayload.exception.GlobalErrorType;
 import org.zapply.product.global.clova.enuermerate.SNSType;
 import org.zapply.product.global.scheduler.service.SchedulingService;
-import org.zapply.product.global.threads.ThreadsPostingClient;
+import org.zapply.product.global.snsClients.threads.ThreadsPostingClient;
 
 import java.time.LocalDateTime;
 import java.util.List;

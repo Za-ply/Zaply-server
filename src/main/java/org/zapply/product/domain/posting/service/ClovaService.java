@@ -21,7 +21,7 @@ import java.util.List;
 @RequiredArgsConstructor
 @Transactional
 @Log4j2
-public class ToneTransferService {
+public class ClovaService {
 
     @Value("${cloud.ncp.clova.api-key}")
     private String apiKey;
@@ -37,6 +37,9 @@ public class ToneTransferService {
 
     @Value("${prompt.snstype.facebook}")
     private String facebookPrompt;
+
+    @Value("${prompt.title.system}")
+    private String titleSystemPrompt;
 
     private final ClovaAiClient clovaAiClient;
 
@@ -64,4 +67,22 @@ public class ToneTransferService {
             throw new CoreException(GlobalErrorType.CLOVA_API_ERROR);
         }
     }
+
+    public String recommendProjectTitle(ToneTransferRequest toneTransferRequest) {
+        String authorizationHeader = "Bearer " + apiKey;
+        String userPrompt = toneTransferRequest.userPrompt();
+        String systemPrompt = titleSystemPrompt;
+        try{
+            ClovaRequest clovaRequset = ClovaRequest.from(List.of(
+                    ClovaMessage.of(ClovaRole.SYSTEM.getValue(), systemPrompt),
+                    ClovaMessage.of(ClovaRole.USER.getValue(),   userPrompt)
+            ));
+            ClovaResponse clovaResponse = clovaAiClient.getCompletions(authorizationHeader, modelName, clovaRequset);
+            return clovaResponse.result().message().content();
+        } catch (Exception e) {
+            log.error("변환 중 오류 발생 요청 데이터: {}", userPrompt, e);
+            throw new CoreException(GlobalErrorType.CLOVA_API_ERROR);
+        }
+    }
+
 }

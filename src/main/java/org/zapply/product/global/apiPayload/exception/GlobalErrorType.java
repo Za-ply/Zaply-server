@@ -22,6 +22,7 @@ public enum GlobalErrorType implements ErrorType {
     ACCOUNT_NOT_FOUND(HttpStatus.NOT_FOUND, "존재하지 않는 계정입니다."),
     EMAIL_NOT_FOUND(HttpStatus.BAD_REQUEST, "이메일이 존재하지 않습니다."),
     FACEBOOK_API_ERROR(HttpStatus.BAD_REQUEST, "페이스북 API 호출에 실패했습니다."),
+    LINKEDIN_API_ERROR(HttpStatus.BAD_REQUEST, "링크드인 API 호출에 실패했습니다."),
     THREADS_API_ERROR(HttpStatus.BAD_REQUEST, "스레드 API 호출에 실패했습니다."),
     THREADS_CREATION_ID_NOT_FOUND(HttpStatus.NOT_FOUND, "스레드 미디어 컨테이너 ID를 찾을 수 없습니다."),
     THREADS_MEDIA_NOT_READY(HttpStatus.BAD_REQUEST, "스레드 미디어가 준비되지 않았습니다."),

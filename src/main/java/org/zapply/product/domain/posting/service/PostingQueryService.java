@@ -13,8 +13,8 @@ import org.zapply.product.global.apiPayload.exception.CoreException;
 import org.zapply.product.global.apiPayload.exception.GlobalErrorType;
 import org.zapply.product.domain.user.service.AccountService;
 import org.zapply.product.global.clova.enuermerate.SNSType;
-import org.zapply.product.global.threads.ThreadsMediaClient;
-import org.zapply.product.global.threads.ThreadsMediaResponse;
+import org.zapply.product.global.snsClients.threads.ThreadsMediaClient;
+import org.zapply.product.global.snsClients.threads.ThreadsMediaResponse;
 
 import java.util.List;
 

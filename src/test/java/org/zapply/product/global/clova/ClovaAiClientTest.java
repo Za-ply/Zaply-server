@@ -6,7 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.zapply.product.domain.posting.dto.request.ToneTransferRequest;
-import org.zapply.product.domain.posting.service.ToneTransferService;
+import org.zapply.product.domain.posting.service.ClovaService;
 import org.zapply.product.global.clova.dto.ClovaMessage;
 import org.zapply.product.global.clova.enuermerate.SNSType;
 import org.zapply.product.global.clova.dto.request.ClovaRequest;
@@ -22,7 +22,7 @@ class ClovaAiClientTest {
     private ClovaAiClient clovaAiClient;
 
     @Autowired
-    private ToneTransferService toneTransferService;
+    private ClovaService clovaService;
 
     @Value("${cloud.ncp.clova.api-key}")
     private String apiKey;
@@ -55,7 +55,7 @@ class ClovaAiClientTest {
                 SNSType.THREADS,
                 "오늘은 정말 기분이 좋다. 날씨도 좋고, 친구들과 함께하는 시간이 너무 즐거워."
         );
-        String storyLines = toneTransferService.TransferToSNSTone(toneTransferRequest);
+        String storyLines = clovaService.TransferToSNSTone(toneTransferRequest);
         System.out.println("-------------------------THREADS-------------------------");
         System.out.println(storyLines);
         System.out.println("-------------------------THREADS-------------------------");
@@ -67,7 +67,7 @@ class ClovaAiClientTest {
                 SNSType.INSTAGRAM,
                 "오늘은 정말 기분이 좋다. 날씨도 좋고, 친구들과 함께하는 시간이 너무 즐거워."
         );
-        String storyLines = toneTransferService.TransferToSNSTone(toneTransferRequest);
+        String storyLines = clovaService.TransferToSNSTone(toneTransferRequest);
         System.out.println("-------------------------INSTA-------------------------");
         System.out.println(storyLines);
         System.out.println("-------------------------INSTA-------------------------");
@@ -79,9 +79,19 @@ class ClovaAiClientTest {
                 SNSType.FACEBOOK,
                 "오늘은 정말 기분이 좋다. 날씨도 좋고, 친구들과 함께하는 시간이 너무 즐거워."
         );
-        String storyLines = toneTransferService.TransferToSNSTone(toneTransferRequest);
+        String storyLines = clovaService.TransferToSNSTone(toneTransferRequest);
         System.out.println("-------------------------FACEBOOK-------------------------");;
         System.out.println(storyLines);
         System.out.println("-------------------------FACEBOOK-------------------------");;
+    }
+
+    @Test
+    public void 제목_추천() {
+        ToneTransferRequest toneTransferRequest = new ToneTransferRequest(
+                SNSType.FACEBOOK,
+                "오늘은 정말 기분이 좋다. 날씨도 좋고, 친구들과 함께하는 시간이 너무 즐거워."
+        );
+        String projectTitle = clovaService.recommendProjectTitle(toneTransferRequest);
+        System.out.println(projectTitle);
     }
 }

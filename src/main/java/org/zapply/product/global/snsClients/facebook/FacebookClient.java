@@ -1,4 +1,4 @@
-package org.zapply.product.global.facebook;
+package org.zapply.product.global.snsClients.facebook;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;

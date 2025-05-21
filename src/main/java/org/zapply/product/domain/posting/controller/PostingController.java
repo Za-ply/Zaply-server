@@ -8,14 +8,15 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.zapply.product.domain.posting.dto.request.ThreadsPostingRequest;
+import org.zapply.product.domain.posting.dto.response.ThreadsInsightResponse;
 import org.zapply.product.domain.posting.dto.response.PostingInfoResponse;
 import org.zapply.product.domain.posting.service.PostingQueryService;
 import org.zapply.product.domain.posting.service.PublishPostingService;
-import org.zapply.product.domain.posting.dto.response.ThreadsInsightResponse;
 import org.zapply.product.global.apiPayload.response.ApiResponse;
 import org.zapply.product.global.clova.enuermerate.SNSType;
 import org.zapply.product.global.security.AuthDetails;
-import org.zapply.product.global.threads.ThreadsInsightClient;
+import org.zapply.product.global.snsClients.threads.ThreadsInsightClient;
+
 
 import java.util.List;
 
@@ -65,20 +66,6 @@ public class PostingController {
         return ApiResponse.success();
     }
 
-    @PutMapping("threads/{postingId}/carousel/schedule")
-    @Operation(summary = "threads carousel 발행 시간 수정하기", description = "SNS타입을 인자로 받아서 발행시점을 수정함")
-    public ApiResponse<?> updateCarouselSchedule(@Valid @RequestBody ThreadsPostingRequest request,
-                                         @PathVariable("postingId") Long postingId) {
-        publishPostingService.rescheduleCarouselMedia(postingId, request.scheduledAt());
-        return ApiResponse.success();
-    }
-
-    @PutMapping("threads/{postingId}/carousel/content")
-    @Operation(summary = "threads carousel 발행 내용 수정하기", description = "SNS타입을 인자로 받아서 발행 내용을 수정함")
-    public ApiResponse<?> updateCarouselContent(@AuthenticationPrincipal AuthDetails authDetails) {
-        return ApiResponse.success();
-    }
-
     @PostMapping("/threads/{projectId}/carousel")
     @Operation(summary = "threads carousel 즉시 발행하기", description = "캐러셀 미디어를 업로드하는 메소드. (media 여러개 업로드)")
     public ApiResponse<?> createCarouselMedia(@AuthenticationPrincipal AuthDetails authDetails,
@@ -90,6 +77,20 @@ public class PostingController {
         else{
             publishPostingService.publishCarouselMediaNow(authDetails.getMember(), request, projectId);
         }
+        return ApiResponse.success();
+    }
+
+    @PutMapping("threads/{postingId}/carousel/schedule")
+    @Operation(summary = "threads carousel 발행 시간 수정하기", description = "SNS타입을 인자로 받아서 발행시점을 수정함")
+    public ApiResponse<?> updateCarouselSchedule(@Valid @RequestBody ThreadsPostingRequest request,
+                                         @PathVariable("postingId") Long postingId) {
+        publishPostingService.rescheduleCarouselMedia(postingId, request.scheduledAt());
+        return ApiResponse.success();
+    }
+
+    @PutMapping("threads/{postingId}/carousel/content")
+    @Operation(summary = "threads carousel 발행 내용 수정하기", description = "SNS타입을 인자로 받아서 발행 내용을 수정함")
+    public ApiResponse<?> updateCarouselContent(@AuthenticationPrincipal AuthDetails authDetails) {
         return ApiResponse.success();
     }
 

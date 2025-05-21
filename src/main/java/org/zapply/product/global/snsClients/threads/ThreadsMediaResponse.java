@@ -1,4 +1,4 @@
-package org.zapply.product.global.threads;
+package org.zapply.product.global.snsClients.threads;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;

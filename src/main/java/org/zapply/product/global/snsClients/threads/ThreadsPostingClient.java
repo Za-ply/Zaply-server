@@ -1,4 +1,4 @@
-package org.zapply.product.global.threads;
+package org.zapply.product.global.snsClients.threads;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

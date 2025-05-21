@@ -8,12 +8,14 @@ import org.zapply.product.global.clova.enuermerate.SNSType;
 @Builder
 public record AccountInfo(
         SNSType snsType,
-        String accountName
+        String accountName,
+        String linkedAt
 ) {
     public static AccountInfo of(Account account) {
         return AccountInfo.builder()
                 .snsType(account.getAccountType())
                 .accountName(account.getAccountName())
+                .linkedAt(account.getCreatedAt().toString())
                 .build();
     }
 }

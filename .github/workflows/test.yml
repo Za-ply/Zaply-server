@@ -2,7 +2,7 @@ name: PR Test
 permissions:
   contents: read    # checkout, 빌드 스크립트 읽기 권한
   checks: write     # Test Results 액션이 check-run 생성/수정 권한
-
+  issues: write     # PR에 코멘트 작성할 수 있는 권한
 on:
   pull_request:
     branches: [ develop ]

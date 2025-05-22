@@ -1,4 +1,7 @@
 name: PR Test
+permissions:
+  contents: read    # checkout, 빌드 스크립트 읽기 권한
+  checks: write     # Test Results 액션이 check-run 생성/수정 권한
 
 on:
   pull_request:

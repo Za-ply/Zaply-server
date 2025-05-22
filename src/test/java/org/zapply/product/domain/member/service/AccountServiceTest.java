@@ -1,4 +1,4 @@
-package org.zapply.product.domain.user.service;
+package org.zapply.product.domain.member.service;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -12,6 +12,7 @@ import org.zapply.product.domain.user.dto.response.AccountsInfoResponse;
 import org.zapply.product.domain.user.entity.Account;
 import org.zapply.product.domain.user.entity.Member;
 import org.zapply.product.domain.user.repository.AccountRepository;
+import org.zapply.product.domain.user.service.AccountService;
 import org.zapply.product.global.apiPayload.exception.CoreException;
 import org.zapply.product.global.apiPayload.exception.GlobalErrorType;
 import org.zapply.product.global.clova.enuermerate.SNSType;

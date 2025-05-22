@@ -1,18 +1,12 @@
-name: CI
-permissions:
-   contents: read
-   checks: write
+name: PR Test
 
 on:
-  push:
-    branches: [ develop ]
   pull_request:
     branches: [ develop ]
 
 jobs:
-  build-and-test:
+  test:
     runs-on: ubuntu-latest
-
     steps:
       - uses: actions/checkout@v3
 
@@ -25,11 +19,17 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
-      - name: Build & Run Unit Tests
-        run: ./gradlew clean test --info
+      - name: Test with Gradle
+        run: ./gradlew --info test
 
       - name: Publish Test Results
         uses: EnricoMi/publish-unit-test-result-action@v1
         if: ${{ always() }}
         with:
           files: build/test-results/**/*.xml
+
+      - name: Cleanup Gradle Cache
+        if: ${{ always() }}
+        run: |
+          rm -f ~/.gradle/caches/modules-2/modules-2.lock
+          rm -f ~/.gradle/caches/modules-2/gc.properties

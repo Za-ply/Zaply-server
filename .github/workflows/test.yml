@@ -39,22 +39,11 @@ jobs:
       - name: Test with Gradle
         run: ./gradlew build --info
 
-        # 커버리지 리포트
-      - name: Generate Code Coverage Report
-        run: ./gradlew jacocoTestReport
-
       - name: Publish Test Results
         uses: EnricoMi/publish-unit-test-result-action@v1
         if: ${{ always() }}
         with:
           files: build/test-results/**/*.xml
-
-       # 커버리지 리포트 아티팩트로 업로드
-      - name: Upload Coverage Report
-        uses: actions/upload-artifact@v3
-        with:
-          name: coverage-report
-          path: build/reports/jacoco
 
       - name: Cleanup Gradle Cache
         if: ${{ always() }}

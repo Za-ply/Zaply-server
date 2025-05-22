@@ -7,8 +7,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.zapply.product.domain.user.dto.response.AccountsInfoResponse;
 import org.springframework.test.util.ReflectionTestUtils;
+import org.zapply.product.domain.user.dto.response.AccountsInfoResponse;
 import org.zapply.product.domain.user.entity.Account;
 import org.zapply.product.domain.user.entity.Member;
 import org.zapply.product.domain.user.repository.AccountRepository;
@@ -20,10 +20,11 @@ import org.zapply.product.global.vault.VaultClient;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.Base64;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -32,105 +33,146 @@ class AccountServiceTest {
     @Mock private AccountRepository accountRepository;
     @Mock private VaultClient vaultClient;
 
-    @InjectMocks
-    private AccountService accountService;
+    @InjectMocks private AccountService accountService;
 
     @BeforeEach
     void setUp() {
-        // if you want to assert on which path gets passed to VaultClient,
-        // set the facebookPath/threadsPath fields manually:
-        ReflectionTestUtils.setField(accountService, "facebookPath", "facebook/clients");
-        ReflectionTestUtils.setField(accountService, "threadsPath",  "threads/clients");
+        ReflectionTestUtils.setField(accountService, "facebookPath", "facebook/path");
+        ReflectionTestUtils.setField(accountService, "threadsPath",  "threads/path");
+        ReflectionTestUtils.setField(accountService, "linkedinPath", "linkedin/path");
     }
 
     @Test
-    void getAccountsInfo_returnsWrappedDto() {
-        // given
-        Member member = Member.builder()
-                .email("test@gmail.com")
-                .name("테스트유저")
-                .build();
-
+    void getAccountsInfo_returnsResponse() {
+        Member member = Member.builder().email("u@e.com").name("U").build();
         Account acc = Account.builder()
                 .accountType(SNSType.FACEBOOK)
-                .accountName("fb_test")
-                .email("fb@facebook.com")
-                .tokenKey("vault_key")
+                .accountName("fb_user")
+                .email("fb@e.com")
+                .tokenKey("key")
                 .member(member)
                 .tokenExpireAt(LocalDateTime.now().plusDays(1))
-                .userId("uid")
-                .build();
+                .userId("uid").build();
+        // set createdAt to avoid NPE in mapping
+        LocalDateTime now = LocalDateTime.now();
+        ReflectionTestUtils.setField(acc, "createdAt", now);
 
-        when(accountRepository.findAllByMember(member))
-                .thenReturn(List.of(acc));
+        given(accountRepository.findAllByMember(member)).willReturn(List.of(acc));
 
-        // when
-        AccountsInfoResponse accountsInfoResponse = accountService.getAccountsInfo(member);
-
-        // then
-        assertEquals(1, accountsInfoResponse.totalCount());
-        assertEquals(1, accountsInfoResponse.accounts().size());
-        assertEquals(SNSType.FACEBOOK, accountsInfoResponse.accounts().getFirst().snsType());
-        assertEquals("fb_test", accountsInfoResponse.accounts().getFirst().accountName());
+        AccountsInfoResponse res = accountService.getAccountsInfo(member);
+        assertThat(res.totalCount()).isEqualTo(1);
+        assertThat(res.accounts()).hasSize(1);
+        assertThat(res.accounts().getFirst().accountName()).isEqualTo("fb_user");
 
         verify(accountRepository).findAllByMember(member);
     }
 
     @Test
-    @DisplayName("unlinkService: 계정이 있으면 VaultClient.deleteSecretKey() 와 repository.delete() 가 호출된다")
+    @DisplayName("unlinkService: existing account triggers delete and vault delete")
     void unlinkService_success() {
-        // given
-        Member member = Member.builder()
-                .email("test@example.com")
-                .name("테스트유저")
-                .build();
-
-        Account account = Account.builder()
-                .accountType(SNSType.FACEBOOK)
-                .accountName("fb_test")
-                .email("fb@test.com")
-                .tokenKey("key")  // <— this is "key"
-                .member(member)
+        Member member = Member.builder().email("t@e").name("T").build();
+        Account acc = Account.builder()
+                .accountType(SNSType.THREADS)
+                .accountName("thr_user")
+                .tokenKey("tok").member(member)
                 .tokenExpireAt(LocalDateTime.now().plusDays(1))
-                .userId("uid")
-                .build();
+                .userId("uid").build();
 
-        when(accountRepository.findByAccountTypeAndMember(SNSType.FACEBOOK, member))
-                .thenReturn(Optional.of(account));
+        given(accountRepository.findByAccountTypeAndMember(SNSType.THREADS, member))
+                .willReturn(Optional.of(acc));
 
-        // when / then
-        assertDoesNotThrow(() ->
-                accountService.unlinkService(SNSType.FACEBOOK, member)
-        );
-
-        // now verify with the exact same values
-        verify(vaultClient, times(1))
-                .deleteSecretKey("facebook/clients", "key");
-
-        verify(accountRepository, times(1))
-                .delete(account);
+        assertDoesNotThrow(() -> accountService.unlinkService(SNSType.THREADS, member));
+        verify(vaultClient).deleteSecretKey("threads/path", "tok");
+        verify(accountRepository).delete(acc);
     }
 
-
     @Test
-    @DisplayName("unlinkService: 계정이 없으면 CoreException(ACCOUNT_NOT_FOUND) 발생")
-    void unlinkService_notFound_throws() {
-        // given
-        Member member = Member.builder()
-                .email("none@example.com")
-                .name("없음")
-                .build();
+    @DisplayName("unlinkService: absent account throws ACCOUNT_NOT_FOUND")
+    void unlinkService_notFound() {
+        Member member = Member.builder().email("x@e").name("X").build();
+        given(accountRepository.findByAccountTypeAndMember(SNSType.FACEBOOK, member))
+                .willReturn(Optional.empty());
 
-        when(accountRepository.findByAccountTypeAndMember(SNSType.THREADS, member))
-                .thenReturn(Optional.empty());
-
-        // when & then
-        CoreException ex = assertThrows(CoreException.class, () ->
-                accountService.unlinkService(SNSType.THREADS, member)
-        );
-        assertEquals(GlobalErrorType.ACCOUNT_NOT_FOUND, ex.getErrorType());
-
+        CoreException ex = assertThrows(CoreException.class,
+                () -> accountService.unlinkService(SNSType.FACEBOOK, member));
+        assertThat(ex.getErrorType()).isEqualTo(GlobalErrorType.ACCOUNT_NOT_FOUND);
         verify(vaultClient, never()).deleteSecretKey(any(), any());
         verify(accountRepository, never()).delete(any());
+    }
+
+    @Test
+    void getAccessToken_success() {
+        Member member = Member.builder().email("a@e").name("A").build();
+        Account acc = Account.builder()
+                .accountType(SNSType.LINKEDIN)
+                .tokenKey("k").member(member)
+                .tokenExpireAt(LocalDateTime.now().plusHours(1))
+                .build();
+        given(accountRepository.findByAccountTypeAndMember(SNSType.LINKEDIN, member))
+                .willReturn(Optional.of(acc));
+        given(vaultClient.getSecret("linkedin/path", "k")).willReturn("secret");
+
+        String token = accountService.getAccessToken(member, SNSType.LINKEDIN);
+        assertThat(token).isEqualTo("secret");
+    }
+
+    @Test
+    void getAccessToken_accountNotFound_throws() {
+        Member member = Member.builder().email("b@e").name("B").build();
+        given(accountRepository.findByAccountTypeAndMember(SNSType.FACEBOOK, member))
+                .willReturn(Optional.empty());
+
+        CoreException ex = assertThrows(CoreException.class,
+                () -> accountService.getAccessToken(member, SNSType.FACEBOOK));
+        assertThat(ex.getErrorType()).isEqualTo(GlobalErrorType.ACCOUNT_TOKEN_KEY_NOT_FOUND);
+    }
+
+    @Test
+    void getAccessToken_tokenExpired_throws() {
+        Member member = Member.builder().email("c@e").name("C").build();
+        Account acc = Account.builder().accountType(SNSType.FACEBOOK)
+                .tokenKey("k").member(member)
+                .tokenExpireAt(LocalDateTime.now().minusMinutes(1))
+                .build();
+        given(accountRepository.findByAccountTypeAndMember(SNSType.FACEBOOK, member))
+                .willReturn(Optional.of(acc));
+
+        CoreException ex = assertThrows(CoreException.class,
+                () -> accountService.getAccessToken(member, SNSType.FACEBOOK));
+        assertThat(ex.getErrorType()).isEqualTo(GlobalErrorType.TOKEN_INVALID);
+    }
+
+    @Test
+    void getAccessToken_vaultMissing_throws() {
+        Member member = Member.builder().email("d@e").name("D").build();
+        Account acc = Account.builder().accountType(SNSType.THREADS)
+                .tokenKey("k").member(member)
+                .tokenExpireAt(LocalDateTime.now().plusMinutes(10))
+                .build();
+        given(accountRepository.findByAccountTypeAndMember(SNSType.THREADS, member))
+                .willReturn(Optional.of(acc));
+        given(vaultClient.getSecret("threads/path", "k")).willReturn(null);
+
+        CoreException ex = assertThrows(CoreException.class,
+                () -> accountService.getAccessToken(member, SNSType.THREADS));
+        assertThat(ex.getErrorType()).isEqualTo(GlobalErrorType.VAULT_TOKEN_NOT_FOUND);
+    }
+
+    @Test
+    void isTokenExpired_behavior() {
+        Account future = Account.builder().tokenExpireAt(LocalDateTime.now().plusSeconds(5)).build();
+        Account past = Account.builder().tokenExpireAt(LocalDateTime.now().minusSeconds(5)).build();
+        assertFalse(accountService.isTokenExpired(future));
+        assertTrue(accountService.isTokenExpired(past));
+    }
+
+    @Test
+    void generateKey_consistentHash() throws Exception {
+        String key1 = accountService.generateKey(1L, "email@e.com");
+        String key2 = accountService.generateKey(1L, "email@e.com");
+        assertEquals(key1, key2);
+        // check length of base64-encoded SHA256
+        byte[] decoded = Base64.getUrlDecoder().decode(key1);
+        assertEquals(32, decoded.length);
     }
 }

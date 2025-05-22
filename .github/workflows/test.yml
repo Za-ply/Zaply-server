@@ -26,10 +26,6 @@ jobs:
       - name: Build & Run Unit Tests
         run: ./gradlew clean test --info
 
-      - name: Run Integration Tests
-        run: ./gradlew integrationTest --info
-        # (integrationTest task가 없다면 이 줄은 빼세요)
-
       - name: Publish Test Results
         uses: EnricoMi/publish-unit-test-result-action@v1
         if: ${{ always() }}

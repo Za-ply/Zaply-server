@@ -30,35 +30,28 @@ public class ThreadsMediaClient {
      * @param accessToken
      * @return
      */
-    public List<ThreadsMediaResponse.ThreadsMedia> getAllThreadsMedia(String accessToken) {
-        List<ThreadsMediaResponse.ThreadsMedia> allMedia = new ArrayList<>();
+    public ThreadsMediaResponse getAllThreadsMedia(String accessToken, String cursor, int size) {
         long nowTimestamp = System.currentTimeMillis() / 1000;
-        String after = null;
 
-        while (true) {
-            URI uri = UriComponentsBuilder
-                    .fromHttpUrl(THREADS_API_BASE + "/me/threads")
-                    .queryParam("fields", "id,media_product_type,media_type,permalink,owner,username,text,timestamp,shortcode,thumbnail_url,is_quote_post,children,alt_text")
-                    .queryParam("since", "2023-07-06")
-                    .queryParam("until", nowTimestamp)
-                    .queryParam("limit", "25")
-                    .queryParam("access_token", accessToken)
-                    .queryParamIfPresent("after", Optional.ofNullable(after))
-                    .build()
-                    .encode()
-                    .toUri();
+        URI uri = UriComponentsBuilder
+                .fromHttpUrl(THREADS_API_BASE + "/me/threads")
+                .queryParam("fields", "id,media_product_type,media_type,permalink,owner,username,text,timestamp,shortcode,thumbnail_url,is_quote_post,children,alt_text")
+                .queryParam("since", "2023-07-06")
+                .queryParam("until", nowTimestamp)
+                .queryParam("limit", size)
+                .queryParam("access_token", accessToken)
+                .queryParamIfPresent("after",
+                        Optional.ofNullable(cursor).filter(s -> !s.isBlank()))
+                .build()
+                .encode()
+                .toUri();
+        try {
+            ThreadsMediaResponse response = Objects.requireNonNull(restClient.get()
+                    .uri(uri)
+                    .retrieve()
+                    .body(ThreadsMediaResponse.class));
 
-            ThreadsMediaResponse response;
-            try {
-                response = Objects.requireNonNull(restClient.get()
-                        .uri(uri)
-                        .retrieve()
-                        .body(ThreadsMediaResponse.class));
-            } catch (Exception e) {
-                throw new CoreException(GlobalErrorType.THREADS_MEDIA_NOT_FOUND);
-            }
-
-            List<ThreadsMediaResponse.ThreadsMedia> filteredMedia = response.data().stream()
+            List<ThreadsMediaResponse.ThreadsMedia> processed = response.data().stream()
                     .filter(media -> !media.is_quote_post())
                     .filter(media -> "IMAGE".equals(media.media_type()) ||
                             "CAROUSEL_ALBUM".equals(media.media_type()) ||
@@ -67,15 +60,12 @@ public class ThreadsMediaClient {
                     .filter(Objects::nonNull)
                     .toList();
 
-            allMedia.addAll(filteredMedia);
+            return new ThreadsMediaResponse(processed, response.paging());
 
-            if (response.paging() == null || response.paging().cursors() == null || response.paging().cursors().after() == null) {
-                break;
-            }
-
-            after = response.paging().cursors().after();
+        } catch (Exception e) {
+            log.error("Error fetching Threads media: {}", e.getMessage());
+            throw new CoreException(GlobalErrorType.THREADS_MEDIA_NOT_FOUND);
         }
-        return allMedia;
     }
 
     /**

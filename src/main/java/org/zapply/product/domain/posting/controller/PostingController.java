@@ -8,8 +8,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.zapply.product.domain.posting.dto.request.ThreadsPostingRequest;
+import org.zapply.product.domain.posting.dto.response.CursorSlice;
 import org.zapply.product.domain.posting.dto.response.PostingDetailResponse;
-import org.zapply.product.domain.posting.dto.response.ThreadsInsightResponse;
+import org.zapply.product.global.snsClients.threads.ThreadsInsightResponse;
 import org.zapply.product.domain.posting.dto.response.PostingInfoResponse;
 import org.zapply.product.domain.posting.service.PostingQueryService;
 import org.zapply.product.domain.posting.service.PublishPostingService;
@@ -106,11 +107,13 @@ public class PostingController {
 
     @GetMapping("/threads/my-media")
     @Operation(summary = "SNS 게시물 리스트 조회하기", description = "SNS 게시물 리스트를 조회하는 메소드.")
-    public ApiResponse<List<PostingDetailResponse>> getThreadsMedia(@RequestParam("snsType") SNSType snsType,
-                                                                    @AuthenticationPrincipal AuthDetails authDetails) {
+    public ApiResponse<CursorSlice<PostingDetailResponse>> getThreadsMedia(@RequestParam(name = "cursor", required = false) String cursor,
+                                                                           @RequestParam(name = "size", defaultValue = "9") int size,
+                                                                           @RequestParam("snsType") SNSType snsType,
+                                                                           @AuthenticationPrincipal AuthDetails authDetails) {
         switch (snsType) {
             case THREADS:
-                return ApiResponse.success(postingQueryService.getAllThreadsMedia(authDetails.getMember()));
+                return ApiResponse.success(postingQueryService.getAllThreadsMedia(cursor, size, authDetails.getMember()));
             default:
                 return ApiResponse.success(null);
         }

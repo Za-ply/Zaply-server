@@ -8,6 +8,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.zapply.product.domain.posting.dto.request.ThreadsPostingRequest;
+import org.zapply.product.domain.posting.dto.response.PostingDetailResponse;
 import org.zapply.product.domain.posting.dto.response.ThreadsInsightResponse;
 import org.zapply.product.domain.posting.dto.response.PostingInfoResponse;
 import org.zapply.product.domain.posting.service.PostingQueryService;
@@ -105,8 +106,8 @@ public class PostingController {
 
     @GetMapping("/threads/my-media")
     @Operation(summary = "SNS 게시물 리스트 조회하기", description = "SNS 게시물 리스트를 조회하는 메소드.")
-    public ApiResponse<?> getThreadsMedia(@RequestParam("snsType") SNSType snsType,
-                                                             @AuthenticationPrincipal AuthDetails authDetails) {
+    public ApiResponse<List<PostingDetailResponse>> getThreadsMedia(@RequestParam("snsType") SNSType snsType,
+                                                                    @AuthenticationPrincipal AuthDetails authDetails) {
         switch (snsType) {
             case THREADS:
                 return ApiResponse.success(postingQueryService.getAllThreadsMedia(authDetails.getMember()));
@@ -117,7 +118,7 @@ public class PostingController {
 
     @GetMapping("/threads/media")
     @Operation(summary = "SNS 단일 게시물 조회하기", description = "SNS 단일 게시물을 조회하는 메소드.")
-    public ApiResponse<?> getSingleThreadsMedia(@RequestParam("snsType") SNSType snsType,
+    public ApiResponse<PostingDetailResponse> getSingleThreadsMedia(@RequestParam("snsType") SNSType snsType,
                                                 @RequestParam("mediaId") String mediaId,
                                                 @AuthenticationPrincipal AuthDetails authDetails) {
         switch (snsType) {

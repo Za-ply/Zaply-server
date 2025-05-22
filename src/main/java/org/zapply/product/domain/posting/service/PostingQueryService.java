@@ -3,6 +3,7 @@ package org.zapply.product.domain.posting.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.zapply.product.domain.posting.dto.response.PostingDetailResponse;
 import org.zapply.product.domain.posting.dto.response.PostingInfoResponse;
 import org.zapply.product.domain.posting.entity.Posting;
 import org.zapply.product.domain.posting.repository.PostingRepository;
@@ -55,11 +56,22 @@ public class PostingQueryService {
      * @param
      * @return 스레드 미디어 조회 결과
      */
-    public List<ThreadsMediaResponse.ThreadsMedia> getAllThreadsMedia( Member member) {
+    public List<PostingDetailResponse> getAllThreadsMedia(Member member) {
         // accessToken 가져오기
         String accessToken = accountService.getAccessToken(member, SNSType.THREADS);
         // 스레드 API에 요청하여 미디어 데이터 가져오기
-        return threadsMediaClient.getAllThreadsMedia(accessToken);
+        List<ThreadsMediaResponse.ThreadsMedia> threadsMedia = threadsMediaClient.getAllThreadsMedia(accessToken);
+
+        // 스레드 미디어를 PostingDetailResponse로 변환
+        return threadsMedia.stream()
+                .map(media -> PostingDetailResponse.of(
+                        media.id(),
+                        "",
+                        media.text(),
+                        media.timestamp(),
+                        media.carousel_media_urls()
+                ))
+                .toList();
     }
 
     /**
@@ -67,10 +79,19 @@ public class PostingQueryService {
      * @param member
      * @param mediaId
      */
-    public ThreadsMediaResponse.ThreadsMedia getSingleThreadsMedia(Member member, String mediaId) {
+    public PostingDetailResponse getSingleThreadsMedia(Member member, String mediaId) {
         // accessToken 가져오기
         String accessToken = accountService.getAccessToken(member, SNSType.THREADS);
         // 스레드 API에 요청하여 미디어 데이터 가져오기
-        return threadsMediaClient.getSingleThreadsMedia(accessToken, mediaId);
+        ThreadsMediaResponse.ThreadsMedia threadsMedia = threadsMediaClient.getSingleThreadsMedia(accessToken, mediaId);
+
+        // 스레드 미디어를 PostingDetailResponse로 변환
+        return PostingDetailResponse.of(
+                threadsMedia.id(),
+                "",
+                threadsMedia.text(),
+                threadsMedia.timestamp(),
+                threadsMedia.carousel_media_urls()
+        );
     }
 }

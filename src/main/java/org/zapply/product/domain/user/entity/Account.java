@@ -43,9 +43,12 @@ public class Account extends BaseTimeEntity {
     @Column
     private String userId;
 
+    @Column(columnDefinition = "TEXT")
+    private String profileImageUrl;
+
     @Builder
     public Account(String accountName, SNSType accountType, String tokenKey, Member member, String email,
-                   LocalDateTime tokenExpireAt, String userId) {
+                   LocalDateTime tokenExpireAt, String userId, String profileImageUrl) {
         this.accountName = accountName;
         this.accountType = accountType;
         this.tokenKey = tokenKey;
@@ -53,6 +56,7 @@ public class Account extends BaseTimeEntity {
         this.email = email;
         this.tokenExpireAt = tokenExpireAt;
         this.userId = userId;
+        this.profileImageUrl = profileImageUrl;
     }
 
     public void updateTokenExpireAt(LocalDateTime tokenExpireAt) {

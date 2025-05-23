@@ -2,11 +2,13 @@ package org.zapply.product.domain.user.dto.request;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotNull;
+import lombok.Builder;
 import org.zapply.product.domain.user.entity.Agreement;
 import org.zapply.product.domain.user.entity.Credential;
 import org.zapply.product.domain.user.entity.Member;
 import org.zapply.product.domain.user.enumerate.LoginType;
 
+@Builder
 public record AuthRequest(
 
         @NotNull

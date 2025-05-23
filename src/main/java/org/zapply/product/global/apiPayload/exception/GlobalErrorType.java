@@ -29,6 +29,8 @@ public enum GlobalErrorType implements ErrorType {
     THREADS_MEDIA_NOT_FOUND(HttpStatus.NOT_FOUND, "스레드 미디어를 찾을 수 없습니다."),
     ACCOUNT_TOKEN_KEY_NOT_FOUND(HttpStatus.NOT_FOUND, "계정의 토큰 키를 찾을 수 없습니다."),
     SNS_TYPE_NOT_FOUND(HttpStatus.NOT_FOUND, "존재하지 않는 SNS 타입입니다."),
+    INSTAGRAM_API_ERROR(HttpStatus.BAD_REQUEST, "인스타그램 API 호출에 실패했습니다."),
+    INSTAGRAM_BUSINESS_ACCOUNT_NOT_FOUND(HttpStatus.NOT_FOUND, "인스타그램 비즈니스 계정을 찾을 수 없습니다."),
 
     //Redis
     REDIS_SET_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "Redis에 값을 저장하는 데 실패했습니다."),

@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.*;
 import org.zapply.product.global.clova.enuermerate.SNSType;
 import org.zapply.product.domain.user.service.AccountService;
 import org.zapply.product.global.apiPayload.response.ApiResponse;
+import org.zapply.product.global.snsClients.instagram.InstagramClient;
 import org.zapply.product.global.snsClients.linkedin.LinkedinClient;
 import org.zapply.product.global.security.AuthDetails;
 import org.zapply.product.global.snsClients.threads.ThreadsClient;
@@ -23,6 +24,7 @@ public class AccountController {
     private final AccountService accountService;
     private final ThreadsClient threadsClient;
     private final LinkedinClient linkedinClient;
+    private final InstagramClient instagramClient;
 
     @GetMapping("/facebook/link")
     @Operation(summary = "페이스북 액세스 토큰 발급", description = "페이스북 액세스 토큰 발급 (계정연동 API에서 연결되는 URL)")
@@ -36,7 +38,7 @@ public class AccountController {
     @GetMapping("/threads/login")
     @Operation(summary = "스레드 계정연동", description = "스레드 계정연동 생성 (accessToken 필요)")
     public void loginThreads(HttpServletResponse response,
-                              @AuthenticationPrincipal AuthDetails authDetails) throws IOException {
+                             @AuthenticationPrincipal AuthDetails authDetails) throws IOException {
         System.out.println(threadsClient.buildAuthorizationUri(authDetails.getMember().getId()));
         response.sendRedirect(threadsClient.buildAuthorizationUri(authDetails.getMember().getId()));
     }
@@ -74,5 +76,23 @@ public class AccountController {
     public ApiResponse<?> unlinkThreads(@PathVariable("snsType") SNSType snsType, @AuthenticationPrincipal AuthDetails authDetails) {
         accountService.unlinkService(snsType, authDetails.getMember());
         return ApiResponse.success("계정 연동 해제 성공");
+    }
+
+
+    @GetMapping("/instagram/login")
+    @Operation(summary = "인스타그램 계정연동", description = "인스타그램 액세스토큰 발급")
+    public void loginInstagram(HttpServletResponse response,
+                               @AuthenticationPrincipal AuthDetails authDetails) throws IOException {
+        String uri = instagramClient.buildAuthorizationUri(authDetails.getMember().getId());
+        response.sendRedirect(uri);
+    }
+
+    @GetMapping("/instagram/link")
+    @Operation(summary = "인스타그램 액세스 토큰 발급", description = "인스타그램 인가 코드로 액세스 토큰을 받고 계정에 연결")
+    public void signInWithInstagram(@RequestParam("access_token") String accessToken,
+                                                   @AuthenticationPrincipal AuthDetails authDetails,
+                                                   HttpServletResponse response) throws IOException {
+        accountService.linkInstagram(accessToken, authDetails.getMember());
+        response.sendRedirect("http://localhost:3000/instagram/callback");
     }
 }

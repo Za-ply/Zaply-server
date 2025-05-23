@@ -13,9 +13,12 @@ import org.zapply.product.domain.user.repository.AccountRepository;
 import org.zapply.product.domain.user.repository.MemberRepository;
 import org.zapply.product.global.apiPayload.exception.CoreException;
 import org.zapply.product.global.apiPayload.exception.GlobalErrorType;
+import org.zapply.product.global.snsClients.instagram.InstagramBusinessResponse;
+import org.zapply.product.global.snsClients.instagram.InstagramClient;
 import org.zapply.product.global.snsClients.facebook.FacebookClient;
 import org.zapply.product.global.snsClients.facebook.FacebookProfile;
 import org.zapply.product.global.snsClients.facebook.FacebookToken;
+import org.zapply.product.global.snsClients.instagram.InstagramProfile;
 import org.zapply.product.global.snsClients.linkedin.LinkedinClient;
 import org.zapply.product.global.snsClients.linkedin.LinkedinToken;
 import org.zapply.product.global.snsClients.linkedin.LinkedinUserInfo;
@@ -41,6 +44,7 @@ public class AccountService {
     private final VaultClient vaultClient;
     private final LinkedinClient linkedinClient;
     private final MemberRepository memberRepository;
+    private final InstagramClient instagramClient;
 
     @Value("${spring.security.oauth2.client.registration.facebook.redirect-uri}")
     private String facebookRedirectUrl;
@@ -55,6 +59,8 @@ public class AccountService {
     private String threadsPath;
     @Value("${spring.cloud.vault.linkedin-path}")
     private String linkedinPath;
+    @Value("${spring.cloud.vault.instagram-path}")
+    private String instagramPath;
 
 
     /**
@@ -257,7 +263,7 @@ public class AccountService {
         );
     }
 
-     /**
+    /**
      * 계정 삭제
      * @param snsType
      * @param member
@@ -273,8 +279,58 @@ public class AccountService {
             case LINKEDIN  -> vaultPath = linkedinPath;
             default -> throw new CoreException(GlobalErrorType.SNS_TYPE_NOT_FOUND);
         }
-            vaultClient.deleteSecretKey(vaultPath, account.getTokenKey());
-            accountRepository.delete(account);
+        vaultClient.deleteSecretKey(vaultPath, account.getTokenKey());
+        accountRepository.delete(account);
+    }
+
+    /**
+     * 인스타그램 계정 연동
+     * @param accessToken
+     * @param member
+     */
+    public String linkInstagram(String accessToken, Member member){
+
+        String longAccessToken = instagramClient.getLongLivedToken(accessToken);
+
+        // 사용자 비즈니스 계정 정보 조회
+        List<InstagramBusinessResponse.PageData> pageData = instagramClient.getAccountId(longAccessToken);
+        if (pageData.isEmpty()) {
+            throw new CoreException(GlobalErrorType.INSTAGRAM_BUSINESS_ACCOUNT_NOT_FOUND);
         }
+
+        // 인스타그램 비즈니스 계정 ID
+        String userId = pageData.get(0).instagramBusinessAccount().id();
+
+        // 인스타그램 비즈니스 프로필 정보 조회
+        InstagramProfile instagramProfile = instagramClient.getInstagramProfile(userId, longAccessToken);
+
+        // key 생성
+        String key = "instagram:" + "client:" + generateKey(member.getId(), instagramProfile.id());
+
+        //bussiness logic: account 정보가 이미 있다면 확인 후 해당 account 정보를 반환하고, 없다면 새로운 account 정보를 생성하여 반환
+        Account account = accountRepository.findByUserIdAndAccountTypeAndMember(instagramProfile.id(), SNSType.INSTAGRAM, member)
+                .map(existingAccount -> {
+                    // 토큰 만료일 갱신
+                    existingAccount.updateTokenExpireAt(LocalDateTime.now().plusDays(60));
+                    return accountRepository.save(existingAccount);
+                })
+                .orElseGet(() -> {
+                    // 계정이 없다면 새로 저장
+                    Account newAccount = Account.builder()
+                            .accountName(instagramProfile.username())
+                            .email("")
+                            .accountType(SNSType.INSTAGRAM)
+                            .tokenKey(key)
+                            .member(member)
+                            .tokenExpireAt(LocalDateTime.now().plusDays(60))
+                            .userId(instagramProfile.id())
+                            .profileImageUrl(instagramProfile.profilePictureUrl())
+                            .build();
+                    return accountRepository.save(newAccount);
+                });
+        vaultClient.saveSecret(instagramPath, key, accessToken);
+
+        return key;
+    }
 
 }

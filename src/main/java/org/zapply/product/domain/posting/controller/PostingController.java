@@ -139,4 +139,13 @@ public class PostingController {
         return ApiResponse.success(instagramPostingService.publishInstagramPost(
                 authDetails.getMember(), request, projectId));
     }
+
+    @PostMapping("/instagram/{projectId}/carousel")
+    @Operation(summary = "인스타그램 캐러셀 미디어 만들기", description = "인스타그램 캐러셀 미디어를 만드는 메소드.")
+    public ApiResponse<?> createInstagramCarouselMedia(@AuthenticationPrincipal AuthDetails authDetails,
+                                                       @Valid @RequestBody InstagramPostingRequest request,
+                                                       @PathVariable("projectId") Long projectId) {
+        return ApiResponse.success(instagramPostingService.publishInstagramCarousel(
+                authDetails.getMember(), request, projectId));
+    }
 }

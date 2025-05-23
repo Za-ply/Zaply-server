@@ -18,6 +18,7 @@ import org.zapply.product.global.clova.enuermerate.SNSType;
 
 import java.net.URI;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @Slf4j
@@ -37,6 +38,7 @@ public class InstagramPostingClient {
 
     /**
      * Instagram 계정 불러오기
+     *
      * @param member
      * @return account
      */
@@ -47,6 +49,7 @@ public class InstagramPostingClient {
 
     /**
      * Instagram API에 요청하기 위한 액세스 토큰 가져오기
+     *
      * @param member
      * @return accessToken
      */
@@ -56,13 +59,14 @@ public class InstagramPostingClient {
 
     /**
      * Instagram에 미디어 컨테이너 생성하기
+     *
      * @param userId
      * @param accessToken
      * @param imageUrl
      * @param caption
      * @return mediaContainerId
      */
-    public String createMediaContainer(String userId, String accessToken, String imageUrl, String caption) {
+    public String createSingleMediaContainer(String userId, String accessToken, String imageUrl, String caption) {
         String url = INSTAGRAM_API_BASE + "/" + userId + "/media"; // POST 대상 엔드포인트
 
         Map<String, Object> body = new HashMap<>();
@@ -84,7 +88,7 @@ public class InstagramPostingClient {
             Map<String, Object> response = objectMapper.readValue(rawResponse, Map.class);
 
             log.info("Instagram API Response: {}", response);
-            if(response == null || response.isEmpty()) {
+            if (response == null || response.isEmpty()) {
                 throw new CoreException(GlobalErrorType.INSTAGRAM_API_ERROR);
             }
 
@@ -98,16 +102,124 @@ public class InstagramPostingClient {
 
     /**
      * Instagram에 미디어 만들기
+     *
      * @param member
      * @param request
      * @param postingId
      */
-    public String createMedia(Member member, InstagramPostingRequest request, Long postingId) {
+    public String createSingleMedia(Member member, InstagramPostingRequest request, Long postingId) {
         Account account = getInstagramAccount(member);
         String accessToken = getAccessToken(member);
 
-        String mediaContainerId = createMediaContainer(account.getUserId(), accessToken, request.imageUrl(), request.caption());
+        String mediaContainerId = createSingleMediaContainer(account.getUserId(), accessToken, request.mediaUrls().get(0), request.caption());
 
         return mediaContainerId;
+    }
+
+    /**
+     * Instagram 캐러셀 컨테이너 생성하기
+     *
+     * @param userId      Instagram User ID
+     * @param accessToken 액세스 토큰
+     * @param caption     게시글 내용
+     * @param childrenIds 미디어 컨테이너 ID 목록 (최대 10개)
+     * @return 캐러셀 컨테이너 ID
+     */
+    public String createCarouselContainer(String userId, String accessToken, String caption, List<String> childrenIds) {
+        String url = INSTAGRAM_API_BASE + "/" + userId + "/media";
+
+        // children 파라미터: 쉼표로 구분된 ID 문자열 생성
+        String children = String.join(",", childrenIds);
+
+        Map<String, Object> body = new HashMap<>();
+        body.put("media_type", "CAROUSEL");
+        body.put("caption", caption);
+        body.put("children", children);
+        body.put("access_token", accessToken);
+
+        log.info("Instagram Carousel Container API URL: {}", url);
+        log.info("Instagram Carousel Container Body: {}", body);
+
+        try {
+            String rawResponse = restClient.post()
+                    .uri(url)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .body(body)
+                    .retrieve()
+                    .body(String.class);
+
+            Map<String, Object> response = objectMapper.readValue(rawResponse, Map.class);
+
+            log.info("Instagram Carousel Container Response: {}", response);
+            if (response == null || !response.containsKey("id")) {
+                throw new CoreException(GlobalErrorType.INSTAGRAM_API_ERROR);
+            }
+
+            return response.get("id").toString();
+        } catch (Exception e) {
+            log.error("Error creating carousel container: {}", e.getMessage(), e);
+            throw new CoreException(GlobalErrorType.INSTAGRAM_API_ERROR);
+        }
+    }
+
+    /**
+     * Instagram에 캐러셀 미디어 만들기
+     *
+     * @param member
+     * @param mediaUrls
+     * @param postingId
+     */
+    public String createCarouselMedia(Member member, List<String> mediaUrls, Long postingId) {
+        Account account = getInstagramAccount(member);
+        String accessToken = getAccessToken(member);
+
+        // 미디어 컨테이너 생성
+        List<String> mediaContainerIds = mediaUrls.stream()
+                    .map(url -> createSingleMediaContainer(account.getUserId(), accessToken, url, null))
+                    .toList();
+        // 캐러셀 컨테이너 생성
+        String carouselContainerId = createCarouselContainer(account.getUserId(), accessToken, null, mediaContainerIds);
+
+        return carouselContainerId;
+    }
+
+    /**
+     * Instagram에 미디어 컨테이너를 게시하기
+     *
+     * @param userId        Instagram User ID
+     * @param accessToken   액세스 토큰
+     * @param creationId    생성된 미디어 컨테이너 ID (단일 이미지 또는 캐러셀 컨테이너 ID)
+     * @return mediaId 게시된 인스타그램 미디어 ID
+     */
+    public String publishMediaContainer(String userId, String accessToken, String creationId) {
+        String url = INSTAGRAM_API_BASE + "/" + userId + "/media_publish";
+
+        Map<String, Object> body = new HashMap<>();
+        body.put("creation_id", creationId);
+        body.put("access_token", accessToken);
+
+        log.info("Instagram Media Publish API URL: {}", url);
+        log.info("Instagram Media Publish Body: {}", body);
+
+        try {
+            String rawResponse = restClient.post()
+                    .uri(url)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .body(body)
+                    .retrieve()
+                    .body(String.class);
+
+            Map<String, Object> response = objectMapper.readValue(rawResponse, Map.class);
+
+            log.info("Instagram Media Publish Response: {}", response);
+            if (response == null || !response.containsKey("id")) {
+                throw new CoreException(GlobalErrorType.INSTAGRAM_API_ERROR);
+            }
+
+            return response.get("id").toString(); // 게시된 Media ID 반환
+        } catch (Exception e) {
+            log.error("Error publishing media container: {}", e.getMessage(), e);
+            throw new CoreException(GlobalErrorType.INSTAGRAM_API_ERROR);
+        }
     }
 }

@@ -224,6 +224,7 @@ public class AccountService {
             case FACEBOOK -> vaultPath = facebookPath;
             case THREADS -> vaultPath = threadsPath;
             case LINKEDIN -> vaultPath = linkedinPath;
+            case INSTAGRAM -> vaultPath = instagramPath;
             default -> throw new CoreException(GlobalErrorType.SNS_TYPE_NOT_FOUND);
         }
 

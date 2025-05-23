@@ -10,11 +10,13 @@ import org.springframework.web.bind.annotation.*;
 import org.zapply.product.domain.posting.dto.request.ThreadsPostingRequest;
 import org.zapply.product.domain.posting.dto.response.ThreadsInsightResponse;
 import org.zapply.product.domain.posting.dto.response.PostingInfoResponse;
+import org.zapply.product.domain.posting.service.InstagramPostingService;
 import org.zapply.product.domain.posting.service.PostingQueryService;
 import org.zapply.product.domain.posting.service.PublishPostingService;
 import org.zapply.product.global.apiPayload.response.ApiResponse;
 import org.zapply.product.global.clova.enuermerate.SNSType;
 import org.zapply.product.global.security.AuthDetails;
+import org.zapply.product.global.snsClients.instagram.InstagramPostingRequest;
 import org.zapply.product.global.snsClients.threads.ThreadsInsightClient;
 
 
@@ -30,6 +32,7 @@ public class PostingController {
     private final PublishPostingService publishPostingService;
     private final PostingQueryService postingQueryService;
     private final ThreadsInsightClient threadsInsightClient;
+    private final InstagramPostingService instagramPostingService;
 
     // 사용자의 프로젝트에 존재하는 포스팅 조회를 위한 API
     @GetMapping("/{projectId}")
@@ -126,5 +129,14 @@ public class PostingController {
             default:
                 return ApiResponse.success(null);
         }
+    }
+
+    @PostMapping("/instagram/{projectId}/single")
+    @Operation(summary = "인스타그램 단일 미디어 캐러셀 만들기", description = "인스타그램 단일 미디어 캐러셀을 만드는 메소드.")
+    public ApiResponse<?> createInstagramSingleMedia(@AuthenticationPrincipal AuthDetails authDetails,
+                                                     @Valid @RequestBody InstagramPostingRequest request,
+                                                     @PathVariable("projectId") Long projectId) {
+        return ApiResponse.success(instagramPostingService.publishInstagramPost(
+                authDetails.getMember(), request, projectId));
     }
 }

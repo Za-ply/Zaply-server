@@ -151,7 +151,9 @@ public class PostingController {
 
     @GetMapping("/instagram/my-media")
     @Operation(summary = "인스타그램 게시물 리스트 조회하기", description = "인스타그램 게시물 리스트를 조회하는 메소드.")
-    public ApiResponse<?> getInstagramMedia(@AuthenticationPrincipal AuthDetails authDetails) {
-        return ApiResponse.success(postingQueryService.getAllInstagramMedia(authDetails.getMember()));
+    public ApiResponse<?> getInstagramMedia(@AuthenticationPrincipal AuthDetails authDetails,
+                                            @RequestParam(name = "cursor", required = false) String cursor,
+                                            @RequestParam(name = "size", defaultValue = "9") int size) {
+        return ApiResponse.success(postingQueryService.getAllInstagramMedia(authDetails.getMember(), cursor, size));
     }
 }

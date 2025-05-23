@@ -17,10 +17,7 @@ import org.zapply.product.global.apiPayload.exception.CoreException;
 import org.zapply.product.global.apiPayload.exception.GlobalErrorType;
 import org.zapply.product.global.clova.enuermerate.SNSType;
 
-import java.util.ArrayList;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
@@ -44,12 +41,12 @@ public class InstagramMediaClient {
         return accountService.getAccessToken(member, SNSType.INSTAGRAM);
     }
 
-    public List<InstagramMediaResponse> getAllMedia(Member member) {
+    public List<InstagramMediaResponse.Data> getAllMedia(Member member) {
         Account account = getInstagramAccount(member);
         String userId = account.getUserId();
         String accessToken = getAccessToken(member);
 
-        List<InstagramMediaResponse> allMedia = new ArrayList<>();
+        List<InstagramMediaResponse.Data> allMedia = new ArrayList<>();
         String url = String.format("https://graph.facebook.com/v22.0/%s/media?fields=id,caption,media_type,media_url,permalink,timestamp&access_token=%s", userId, accessToken);
 
         while (url != null) {
@@ -64,17 +61,17 @@ public class InstagramMediaClient {
                 JsonNode dataArray = root.get("data");
 
                 if (dataArray != null && dataArray.isArray()) {
-                    List<InstagramMediaResponse> mediaList = StreamSupport.stream(dataArray.spliterator(), false)
+                    List<InstagramMediaResponse.Data> mediaList = StreamSupport.stream(dataArray.spliterator(), false)
                             .map(this::parseMediaNode)
                             .map(media -> {
-                                if ("CAROUSEL_ALBUM".equals(media.mediaType())) {
+                                if ("CAROUSEL_ALBUM".equals(media.media_type())) {
                                     Set<String> childMediaUrls = getCarouselChildren(media.id(), accessToken);
 
-                                    return InstagramMediaResponse.builder()
+                                    return InstagramMediaResponse.Data.builder()
                                             .id(media.id())
                                             .caption(media.caption())
-                                            .mediaType(media.mediaType())
-                                            .mediaUrls(new ArrayList<>(childMediaUrls))
+                                            .media_type(media.media_type())
+                                            .media_urls(new ArrayList<>(childMediaUrls))
                                             .permalink(media.permalink())
                                             .timestamp(media.timestamp())
                                             .build();
@@ -85,7 +82,6 @@ public class InstagramMediaClient {
 
                     allMedia.addAll(mediaList);
                 }
-
 
                 JsonNode paging = root.get("paging");
                 if (paging != null && paging.has("next")) {
@@ -102,7 +98,7 @@ public class InstagramMediaClient {
         return allMedia;
     }
 
-    private InstagramMediaResponse parseMediaNode(JsonNode mediaNode) {
+    private InstagramMediaResponse.Data parseMediaNode(JsonNode mediaNode) {
         String id = mediaNode.get("id").asText();
         String caption = mediaNode.hasNonNull("caption") ? mediaNode.get("caption").asText() : null;
         String mediaType = mediaNode.get("media_type").asText();
@@ -115,11 +111,11 @@ public class InstagramMediaClient {
         String permalink = mediaNode.get("permalink").asText();
         String timestamp = mediaNode.hasNonNull("timestamp") ? mediaNode.get("timestamp").asText() : null;
 
-        return InstagramMediaResponse.builder()
+        return InstagramMediaResponse.Data.builder()
                 .id(id)
                 .caption(caption)
-                .mediaType(mediaType)
-                .mediaUrls(mediaUrls)
+                .media_type(mediaType)
+                .media_urls(mediaUrls)
                 .permalink(permalink)
                 .timestamp(timestamp)
                 .build();
@@ -151,5 +147,4 @@ public class InstagramMediaClient {
 
         return mediaUrls;
     }
-
 }

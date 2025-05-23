@@ -6,10 +6,25 @@ import java.util.List;
 
 @Builder
 public record InstagramMediaResponse(
-        String id,
-        String caption,
-        String mediaType,
-        List<String> mediaUrls,
-        String permalink,
-        String timestamp
-) {}
+        Data data,
+        Paging paging
+) {
+    @Builder
+    public record Data(
+            String id,
+            String caption,
+            String media_type,
+            List<String> media_urls,
+            String permalink,
+            String timestamp
+    ) {
+    }
+    public record Paging(
+            Cursors cursors
+    ) {
+        public record Cursors(
+                String before,
+                String after
+        ) {}
+    }
+}

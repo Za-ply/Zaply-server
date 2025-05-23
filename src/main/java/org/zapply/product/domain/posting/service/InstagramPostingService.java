@@ -40,6 +40,6 @@ public class InstagramPostingService {
      */
     @Transactional
     public InstagramPostingResponse publishInstagramCarousel(Member member, PostingRequest request, Long projectId) {
-        return instagramPostingClient.createCarouselMedia(member, request.media(), request.text(), projectId);
+        return instagramPostingClient.createCarouselMedia(member, request, projectId);
     }
 }

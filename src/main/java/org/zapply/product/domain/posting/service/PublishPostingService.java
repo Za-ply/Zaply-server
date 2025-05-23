@@ -101,7 +101,7 @@ public class PublishPostingService {
             case SNSType.INSTAGRAM ->
                     mediaId = instagramPostingClient.createSingleMedia(member, postingRequest, posting.getProject().getProjectId()).mediaId();
             default ->
-                    throw new IllegalArgumentException("Unsupported SNS type: " + snsType);
+                    throw new CoreException(GlobalErrorType.SNS_TYPE_NOT_FOUND);
         }
 
         posting.updatePostingState(PostingState.POSTED);
@@ -114,13 +114,13 @@ public class PublishPostingService {
     }
 
     @Transactional
-    public void scheduleCarouselMediaPublish(PostingRequest request, Long projectId) {
+    public void scheduleCarouselMediaPublish(PostingRequest request, Long projectId, SNSType snsType) {
         Project project = projectRepository.findByProjectIdAndDeletedAtIsNull(projectId)
                 .orElseThrow(() -> new CoreException(GlobalErrorType.PROJECT_NOT_FOUND));
 
         Posting posting = Posting.builder()
                 .project(project)
-                .postingType(SNSType.THREADS)
+                .postingType(snsType)
                 .postingContent(request.text())
                 .scheduledAt(request.scheduledAt())
                 .postingState(PostingState.SCHEDULED)
@@ -131,12 +131,12 @@ public class PublishPostingService {
         schedulingService.scheduleTask(
                 posting.getPostingId(),
                 request.scheduledAt(),
-                () -> executeScheduledCarouselMedia(posting.getPostingId())
+                () -> executeScheduledCarouselMedia(posting.getPostingId(), snsType)
         );
     }
 
     @Transactional
-    public void rescheduleCarouselMedia(Long postingId, LocalDateTime newScheduledAt) {
+    public void rescheduleCarouselMedia(Long postingId, LocalDateTime newScheduledAt, SNSType snsType) {
         Posting posting = postingRepository
                 .findByPostingIdAndPostingStateAndDeletedAtIsNull(postingId, PostingState.SCHEDULED)
                 .orElseThrow(() -> new CoreException(GlobalErrorType.POSTING_NOT_FOUND));
@@ -147,12 +147,12 @@ public class PublishPostingService {
         schedulingService.scheduleTask(
                 postingId,
                 newScheduledAt,
-                () -> executeScheduledCarouselMedia(postingId)
+                () -> executeScheduledCarouselMedia(postingId, snsType)
         );
     }
 
     @Transactional
-    public void executeScheduledCarouselMedia(Long postingId) {
+    public void executeScheduledCarouselMedia(Long postingId, SNSType snsType) {
         Posting posting = postingRepository.findById(postingId)
                 .orElseThrow(() -> new CoreException(GlobalErrorType.POSTING_NOT_FOUND));
 
@@ -160,7 +160,17 @@ public class PublishPostingService {
         Member member = posting.getProject().getMember();
         PostingRequest postingRequest = PostingRequest.of(MediaType.IMAGE, mediaUrls, posting);
 
-        String mediaId = threadsPostingClient.createUpdatedCarouselMedia(member, postingRequest);
+
+        String mediaId;
+
+        switch (snsType) {
+            case SNSType.THREADS ->
+                    mediaId = threadsPostingClient.createUpdatedCarouselMedia(member, postingRequest);
+            case SNSType.INSTAGRAM ->
+                    mediaId = instagramPostingClient.createCarouselMedia(member, postingRequest, posting.getProject().getProjectId()).mediaId();
+            default ->
+                    throw new CoreException(GlobalErrorType.SNS_TYPE_NOT_FOUND);
+        }
         posting.updatePostingState(PostingState.POSTED);
         posting.updateMediaId(mediaId);
     }

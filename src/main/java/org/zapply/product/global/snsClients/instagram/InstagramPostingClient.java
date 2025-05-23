@@ -270,20 +270,19 @@ public class InstagramPostingClient {
      * Instagram에 캐러셀 미디어 만들기
      *
      * @param member
-     * @param mediaUrls
-     * @param caption
+     * @param request
      * @param projectId
      */
-    public InstagramPostingResponse createCarouselMedia(Member member, List<String> mediaUrls, String caption, Long projectId) {
+    public InstagramPostingResponse createCarouselMedia(Member member, PostingRequest request, Long projectId) {
         Account account = getInstagramAccount(member);
         String accessToken = getAccessToken(member);
 
         // 미디어 컨테이너 생성
-        List<String> mediaContainerIds = mediaUrls.stream()
+        List<String> mediaContainerIds = request.media().stream()
                 .map(url -> createSingleMediaContainer(account.getUserId(), accessToken, url, null))
                 .toList();
         // 캐러셀 컨테이너 생성
-        String carouselContainerId = createCarouselContainer(account.getUserId(), accessToken, caption, mediaContainerIds);
+        String carouselContainerId = createCarouselContainer(account.getUserId(), accessToken, request.text(), mediaContainerIds);
 
         // 캐러셀 컨테이너 게시하기
         String publishedId = publishMediaContainer(account.getUserId(), accessToken, carouselContainerId);
@@ -291,7 +290,7 @@ public class InstagramPostingClient {
         // 게시글 url 가져오기
         String postingUrl = getPostingUrl(account.getUserId(), publishedId);
 
-        return savePosting(publishedId, projectId, "CAROUSEL", postingUrl, caption);
+        return savePosting(publishedId, projectId, "CAROUSEL", postingUrl, request.text());
     }
 
 }

@@ -75,7 +75,7 @@ public class PostingController {
                                               @Valid @RequestBody PostingRequest request,
                                               @PathVariable("projectId") Long projectId) {
         if (request.scheduledAt() != null) {
-            publishPostingService.scheduleCarouselMediaPublish(request, projectId);
+            publishPostingService.scheduleCarouselMediaPublish(request, projectId, SNSType.THREADS);
         }
         else{
             publishPostingService.publishCarouselMediaNow(authDetails.getMember(), request, projectId);
@@ -86,8 +86,9 @@ public class PostingController {
     @PutMapping("threads/{postingId}/carousel/schedule")
     @Operation(summary = "threads carousel 발행 시간 수정하기", description = "SNS타입을 인자로 받아서 발행시점을 수정함")
     public ApiResponse<?> updateCarouselSchedule(@Valid @RequestBody PostingRequest request,
-                                         @PathVariable("postingId") Long postingId) {
-        publishPostingService.rescheduleCarouselMedia(postingId, request.scheduledAt());
+                                         @PathVariable("postingId") Long postingId,
+                                         @RequestParam("snsType") SNSType snsType) {
+        publishPostingService.rescheduleCarouselMedia(postingId, request.scheduledAt(), snsType);
         return ApiResponse.success();
     }
 
@@ -151,8 +152,14 @@ public class PostingController {
     public ApiResponse<?> createInstagramCarouselMedia(@AuthenticationPrincipal AuthDetails authDetails,
                                                        @Valid @RequestBody PostingRequest request,
                                                        @PathVariable("projectId") Long projectId) {
-        return ApiResponse.success(instagramPostingService.publishInstagramCarousel(
-                authDetails.getMember(), request, projectId));
+        if (request.scheduledAt() != null) {
+            publishPostingService.scheduleCarouselMediaPublish(request, projectId, SNSType.INSTAGRAM);
+        }
+        else{
+            instagramPostingService.publishInstagramCarousel(
+                    authDetails.getMember(), request, projectId);
+        }
+        return ApiResponse.success();
     }
 
 

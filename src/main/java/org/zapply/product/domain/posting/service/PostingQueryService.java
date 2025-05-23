@@ -121,4 +121,25 @@ public class PostingQueryService {
 
         return new CursorSlice<>(content, nextCursor, hasNext);
     }
+
+    /**
+     * 인스타그램 단일 미디어 조회하기
+     * @param member
+     * @param mediaId
+     * @return
+     */
+    public PostingDetailResponse getSingleInstagramMedia(Member member, String mediaId) {
+        InstagramMediaResponse.Data media = instagramMediaClient.getMediaById(mediaId, member);
+        return PostingDetailResponse.of(
+                media.id(),
+                "",
+                media.caption(),
+                media.timestamp(),
+                switch (media.media_type()) {
+                    case "IMAGE", "CAROUSEL_ALBUM" -> media.media_urls();
+                    case "TEXT_POST" -> null;
+                    default -> null;
+                }
+        );
+    }
 }

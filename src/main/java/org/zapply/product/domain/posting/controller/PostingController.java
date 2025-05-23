@@ -107,19 +107,23 @@ public class PostingController {
                 threadsInsightClient.getThreadsInsight(authDetails.getMember(), postingId));
     }
 
-    @GetMapping("/threads/my-media")
+    @GetMapping("/my-media")
     @Operation(summary = "SNS 게시물 리스트 조회하기", description = "SNS 게시물 리스트를 조회하는 메소드.")
     public ApiResponse<?> getThreadsMedia(@RequestParam("snsType") SNSType snsType,
-                                                             @AuthenticationPrincipal AuthDetails authDetails) {
+                                          @RequestParam(name = "cursor", required = false) String cursor,
+                                          @RequestParam(name = "size", defaultValue = "9") int size,
+                                          @AuthenticationPrincipal AuthDetails authDetails) {
         switch (snsType) {
             case THREADS:
                 return ApiResponse.success(postingQueryService.getAllThreadsMedia(authDetails.getMember()));
+            case INSTAGRAM:
+                return ApiResponse.success(postingQueryService.getAllInstagramMedia(authDetails.getMember(), cursor, size));
             default:
                 return ApiResponse.success(null);
         }
     }
 
-    @GetMapping("/threads/media")
+    @GetMapping("/media")
     @Operation(summary = "SNS 단일 게시물 조회하기", description = "SNS 단일 게시물을 조회하는 메소드.")
     public ApiResponse<?> getSingleThreadsMedia(@RequestParam("snsType") SNSType snsType,
                                                 @RequestParam("mediaId") String mediaId,
@@ -127,6 +131,8 @@ public class PostingController {
         switch (snsType) {
             case THREADS:
                 return ApiResponse.success(postingQueryService.getSingleThreadsMedia(authDetails.getMember(), mediaId));
+            case INSTAGRAM:
+                return ApiResponse.success(postingQueryService.getSingleInstagramMedia(authDetails.getMember(), mediaId));
             default:
                 return ApiResponse.success(null);
         }
@@ -161,16 +167,4 @@ public class PostingController {
         }
         return ApiResponse.success();
     }
-
-
-
-    @GetMapping("/instagram/my-media")
-    @Operation(summary = "인스타그램 게시물 리스트 조회하기", description = "인스타그램 게시물 리스트를 조회하는 메소드.")
-    public ApiResponse<?> getInstagramMedia(@AuthenticationPrincipal AuthDetails authDetails,
-                                            @RequestParam(name = "cursor", required = false) String cursor,
-                                            @RequestParam(name = "size", defaultValue = "9") int size) {
-        return ApiResponse.success(postingQueryService.getAllInstagramMedia(authDetails.getMember(), cursor, size));
-    }
-
-
 }

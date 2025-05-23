@@ -13,6 +13,8 @@ import org.zapply.product.global.apiPayload.exception.CoreException;
 import org.zapply.product.global.apiPayload.exception.GlobalErrorType;
 import org.zapply.product.domain.user.service.AccountService;
 import org.zapply.product.global.clova.enuermerate.SNSType;
+import org.zapply.product.global.snsClients.instagram.InstagramMediaClient;
+import org.zapply.product.global.snsClients.instagram.InstagramMediaResponse;
 import org.zapply.product.global.snsClients.threads.ThreadsMediaClient;
 import org.zapply.product.global.snsClients.threads.ThreadsMediaResponse;
 
@@ -28,6 +30,7 @@ public class PostingQueryService {
     private final PostingRepository postingRepository;
     private final ProjectRepository projectRepository;
     private final ImageService imageService;
+    private final InstagramMediaClient instagramMediaClient;
 
     public List<PostingInfoResponse> getPostings(Member member, Long projectId) {
 
@@ -72,5 +75,10 @@ public class PostingQueryService {
         String accessToken = accountService.getAccessToken(member, SNSType.THREADS);
         // 스레드 API에 요청하여 미디어 데이터 가져오기
         return threadsMediaClient.getSingleThreadsMedia(accessToken, mediaId);
+    }
+
+    public List<InstagramMediaResponse> getAllInstagramMedia(Member member) {
+        // 인스타그램 API에 요청하여 미디어 데이터 가져오기
+        return instagramMediaClient.getAllMedia(member);
     }
 }

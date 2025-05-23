@@ -4,12 +4,10 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.zapply.product.domain.posting.dto.request.PostingRequest;
 import org.zapply.product.domain.user.entity.Member;
 import org.zapply.product.global.snsClients.instagram.InstagramPostingClient;
-import org.zapply.product.global.snsClients.instagram.InstagramPostingRequest;
 import org.zapply.product.global.snsClients.instagram.InstagramPostingResponse;
-
-import java.util.List;
 
 @Slf4j
 @Service
@@ -28,7 +26,7 @@ public class InstagramPostingService {
      * @return InstagramPostingResponse
      */
     @Transactional
-    public InstagramPostingResponse publishInstagramPost(Member member, InstagramPostingRequest request, Long projectId) {
+    public InstagramPostingResponse publishInstagramPost(Member member, PostingRequest request, Long projectId) {
         return instagramPostingClient.createSingleMedia(member, request, projectId);
     }
 
@@ -41,7 +39,7 @@ public class InstagramPostingService {
      * @return InstagramPostingResponse
      */
     @Transactional
-    public InstagramPostingResponse publishInstagramCarousel(Member member, InstagramPostingRequest request, Long projectId) {
-        return instagramPostingClient.createCarouselMedia(member, request.mediaUrls(), request.caption(), projectId);
+    public InstagramPostingResponse publishInstagramCarousel(Member member, PostingRequest request, Long projectId) {
+        return instagramPostingClient.createCarouselMedia(member, request.media(), request.text(), projectId);
     }
 }

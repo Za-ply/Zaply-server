@@ -8,6 +8,7 @@ import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.util.UriComponentsBuilder;
+import org.zapply.product.domain.posting.dto.request.PostingRequest;
 import org.zapply.product.domain.posting.entity.Posting;
 import org.zapply.product.domain.posting.enumerate.PostingState;
 import org.zapply.product.domain.posting.repository.PostingRepository;
@@ -220,11 +221,11 @@ public class InstagramPostingClient {
      * @param request
      * @param projectId
      */
-    public InstagramPostingResponse createSingleMedia(Member member, InstagramPostingRequest request, Long projectId)  {
+    public InstagramPostingResponse createSingleMedia(Member member, PostingRequest request, Long projectId)  {
         Account account = getInstagramAccount(member);
         String accessToken = getAccessToken(member);
 
-        String mediaContainerId = createSingleMediaContainer(account.getUserId(), accessToken, request.mediaUrls().get(0), request.caption());
+        String mediaContainerId = createSingleMediaContainer(account.getUserId(), accessToken, request.media().get(0), request.text());
 
         // 미디어 컨테이너 게시하기
         String publishedId = publishMediaContainer(account.getUserId(), accessToken, mediaContainerId);
@@ -232,7 +233,7 @@ public class InstagramPostingClient {
         // 게시글 url 가져오기
         String postingUrl = getPostingUrl(account.getUserId(), publishedId);
 
-        return savePosting(publishedId, projectId, "IMAGE", postingUrl, request.caption());
+        return savePosting(publishedId, projectId, "IMAGE", postingUrl, request.text());
     }
 
     /**

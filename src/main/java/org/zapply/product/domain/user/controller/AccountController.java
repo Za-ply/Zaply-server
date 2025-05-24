@@ -72,7 +72,7 @@ public class AccountController {
 
 
     @GetMapping("/{snsType}/unlink")
-    @Operation(summary = "스레드 계정연동 해제", description = "스레드 계정연동 해제")
+    @Operation(summary = "계정연동 해제", description = "스레드 계정연동 해제")
     public ApiResponse<?> unlinkThreads(@PathVariable("snsType") SNSType snsType, @AuthenticationPrincipal AuthDetails authDetails) {
         accountService.unlinkService(snsType, authDetails.getMember());
         return ApiResponse.success("계정 연동 해제 성공");

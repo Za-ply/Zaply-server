@@ -72,7 +72,7 @@ public class AccountController {
 
 
     @GetMapping("/{snsType}/unlink")
-    @Operation(summary = "스레드 계정연동 해제", description = "스레드 계정연동 해제")
+    @Operation(summary = "계정연동 해제", description = "스레드 계정연동 해제")
     public ApiResponse<?> unlinkThreads(@PathVariable("snsType") SNSType snsType, @AuthenticationPrincipal AuthDetails authDetails) {
         accountService.unlinkService(snsType, authDetails.getMember());
         return ApiResponse.success("계정 연동 해제 성공");
@@ -89,10 +89,10 @@ public class AccountController {
 
     @GetMapping("/instagram/link")
     @Operation(summary = "인스타그램 액세스 토큰 발급", description = "인스타그램 인가 코드로 액세스 토큰을 받고 계정에 연결")
-    public void signInWithInstagram(@RequestParam("access_token") String accessToken,
-                                                   @AuthenticationPrincipal AuthDetails authDetails,
-                                                   HttpServletResponse response) throws IOException {
+    public ApiResponse<?> signInWithInstagram(@RequestParam("access_token") String accessToken,
+                                              @AuthenticationPrincipal AuthDetails authDetails,
+                                              HttpServletResponse response) throws IOException {
         accountService.linkInstagram(accessToken, authDetails.getMember());
-        response.sendRedirect("http://localhost:3000/instagram/callback");
+        return ApiResponse.success("계정 연동 성공");
     }
 }

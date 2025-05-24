@@ -5,7 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.zapply.product.domain.posting.dto.request.ThreadsPostingRequest;
-import org.zapply.product.domain.posting.dto.response.ThreadsPostingResponse;
+import org.zapply.product.global.snsClients.threads.ThreadsPostingResponse;
 import org.zapply.product.domain.posting.entity.Posting;
 import org.zapply.product.domain.posting.enumerate.MediaType;
 import org.zapply.product.domain.posting.enumerate.PostingState;

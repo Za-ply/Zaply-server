@@ -7,7 +7,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.util.UriComponentsBuilder;
 import org.zapply.product.domain.posting.dto.request.ThreadsPostingRequest;
-import org.zapply.product.domain.posting.dto.response.ThreadsPostingResponse;
 import org.zapply.product.domain.posting.entity.Posting;
 import org.zapply.product.domain.posting.enumerate.PostingState;
 import org.zapply.product.domain.posting.repository.PostingRepository;

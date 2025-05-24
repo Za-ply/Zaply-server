@@ -9,13 +9,15 @@ import org.zapply.product.global.clova.enuermerate.SNSType;
 public record AccountInfo(
         SNSType snsType,
         String accountName,
-        String linkedAt
+        String linkedAt,
+        String profileImageUrl
 ) {
     public static AccountInfo of(Account account) {
         return AccountInfo.builder()
                 .snsType(account.getAccountType())
                 .accountName(account.getAccountName())
                 .linkedAt(account.getCreatedAt().toString())
+                .profileImageUrl(account.getProfileImageUrl())
                 .build();
     }
 }

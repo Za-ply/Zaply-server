@@ -29,7 +29,9 @@ import org.zapply.product.global.security.jwt.JwtProvider;
 import java.io.IOException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
 import java.util.Map;
+import java.util.UUID;
 
 @Slf4j
 @Component
@@ -67,18 +69,12 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
             MemberResponse memberResponse = MemberResponse.of(member);
             AccountsInfoResponse accountsInfo = accountService.getAccountsInfo(member);
             LoginResponse loginResponse = LoginResponse.of(tokenResponse, memberResponse, accountsInfo);
-
-            String callbackUrl = "http://localhost:3000/google/callback";
-            // JSON으로 직렬화하여 쿠키에 세팅 (프론트에서 읽을 수 있도록 HttpOnly=false)
-            // 4) JSON 직렬화 후 URLEncoded string 으로 redirect query param에 담기
-            String json = objectMapper.writeValueAsString(loginResponse);
-            String encoded = URLEncoder.encode(json, StandardCharsets.UTF_8);
-            String targetUrl = UriComponentsBuilder.fromUriString(callbackUrl)
-                    .queryParam("loginResponse", encoded)
-                    .build()
-                    .toUriString();
-
-            getRedirectStrategy().sendRedirect(request, response, targetUrl);
+            String tempCode = UUID.randomUUID().toString();
+            redisClient.setValue("auth:" + tempCode,
+                    objectMapper.writeValueAsString(loginResponse), 1000 * 60L);
+            System.out.println("auth:"+tempCode);
+            String callbackUrl = "http://localhost:3000/?code=" + tempCode;
+            getRedirectStrategy().sendRedirect(request, response, callbackUrl);
         }
         catch (IOException e) {
             throw new CoreException(GlobalErrorType.OAUTH_ERROR);

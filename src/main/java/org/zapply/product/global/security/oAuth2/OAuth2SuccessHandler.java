@@ -73,7 +73,7 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
             redisClient.setValue("auth:" + tempCode,
                     objectMapper.writeValueAsString(loginResponse), 1000 * 60L);
             System.out.println("auth:"+tempCode);
-            String callbackUrl = "http://localhost:3000/google/callback?code=" + tempCode;
+            String callbackUrl = "http://localhost:3000/?code=" + tempCode;
             getRedirectStrategy().sendRedirect(request, response, callbackUrl);
         }
         catch (IOException e) {

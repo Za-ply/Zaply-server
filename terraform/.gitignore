@@ -43,3 +43,5 @@ tf-ncp-bastion-key.pem
 tf-ncp-bastion-root_password.txt
 /variables.tf
 /tf-ncp-bastion-key.pub
+/tf-ncp-green-bastion-root_password.txt
+/tf-ncp-green-bastion-key.pem

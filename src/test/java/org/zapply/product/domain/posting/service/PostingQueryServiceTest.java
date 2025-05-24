@@ -125,10 +125,12 @@ class PostingQueryServiceTest {
                 .gif_url(null)
                 .build();
         List<ThreadsMedia> mediaList = List.of(media);
-        given(threadsMediaClient.getAllThreadsMedia("token123", null, 10))
-                .willReturn(new ThreadsMediaResponse(mediaList, null));
-        CursorSlice<PostingDetailResponse> result = service.getAllThreadsMedia(null, 10, member);
-        assertThat(result).isSameAs(mediaList);
+        ThreadsMediaResponse response = new ThreadsMediaResponse(mediaList, null);
+        given(threadsMediaClient.getAllThreadsMedia("token123", null, 6))
+                .willReturn(response);
+        CursorSlice<PostingDetailResponse> result = service.getAllThreadsMedia(null, 6, member);
+
+        assertThat(result.hasNext()).isFalse();
     }
 
     @Test
@@ -157,8 +159,10 @@ class PostingQueryServiceTest {
                 .link_attachment_url("linkUrl")
                 .gif_url("gifUrl")
                 .build();
-        given(threadsMediaClient.getSingleThreadsMedia("tokenXYZ", "media2")).willReturn(item);
+        ThreadsMediaResponse response = new ThreadsMediaResponse(List.of(item), null);
+        given(threadsMediaClient.getSingleThreadsMedia("tokenXYZ", "media2"))
+                .willReturn(response.data().get(0));
         PostingDetailResponse result = service.getSingleThreadsMedia( member, "media2");
-        assertThat(result).isSameAs(item);
+        assertThat(result.postingContent()).isEqualTo("text2");
     }
 }

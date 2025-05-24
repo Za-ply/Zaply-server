@@ -2,6 +2,7 @@ package org.zapply.product.domain.user.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -17,8 +18,11 @@ import org.zapply.product.domain.user.service.AccountService;
 import org.zapply.product.domain.user.service.AuthService;
 import org.zapply.product.domain.user.service.MemberService;
 import org.zapply.product.global.apiPayload.response.ApiResponse;
+import org.zapply.product.global.redis.RedisClient;
 import org.zapply.product.global.security.AuthDetails;
 import org.zapply.product.global.security.jwt.JwtProvider;
+
+import java.io.IOException;
 
 @Slf4j
 @RestController
@@ -65,6 +69,13 @@ public class AuthController {
     @Operation(summary = "이메일 중복 확인", description = "이메일 중복 확인. true - 중복, false - 사용 가능")
     public ApiResponse<Boolean> checkEmailDuplicate(@RequestParam("email") String email) {
         return ApiResponse.success(authService.checkEmailDuplicate(email));
+    }
+
+
+    @GetMapping("/google/exchange")
+    @Operation(summary = "google 로그인", description = "발급된 코드를 가지고 사용자 정보로 교환합니다.")
+    public ApiResponse<LoginResponse> exchangeCodetoUserResponse(@RequestParam("code") String code) {
+        return ApiResponse.success(authService.exchangeCodeToUserInfo(code));
     }
 }
 

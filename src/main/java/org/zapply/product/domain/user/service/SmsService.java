@@ -18,7 +18,7 @@ public class SmsService{
     private final SMSClient smsClient;
     private final RedisClient redisClient;
 
-    // OTP 유효시간 5분
+
     private static final long OTP_EXPIRATION_MILLIS = 5 * 60_000L;
     private static final SecureRandom secureRandom = new SecureRandom();
 

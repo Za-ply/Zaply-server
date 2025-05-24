@@ -20,7 +20,9 @@ import org.zapply.product.global.snsClients.instagram.InstagramMediaResponse;
 import org.zapply.product.global.snsClients.threads.ThreadsMediaClient;
 import org.zapply.product.global.snsClients.threads.ThreadsMediaResponse;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -61,11 +63,47 @@ public class PostingQueryService {
      * @param
      * @return 스레드 미디어 조회 결과
      */
-    public List<ThreadsMediaResponse.ThreadsMedia> getAllThreadsMedia( Member member) {
+    public CursorSlice<PostingDetailResponse> getAllThreadsMedia(String cursor, int size, Member member) {
         // accessToken 가져오기
         String accessToken = accountService.getAccessToken(member, SNSType.THREADS);
-        // 스레드 API에 요청하여 미디어 데이터 가져오기
-        return threadsMediaClient.getAllThreadsMedia(accessToken);
+
+        // 커서 기반으로 페이징된 미디어 응답 가져오기
+        ThreadsMediaResponse response = threadsMediaClient.getAllThreadsMedia(
+                accessToken,
+                cursor,
+                size
+        );
+
+        List<PostingDetailResponse> content = response.data().stream()
+                .filter(media -> !media.is_quote_post())
+                .filter(media -> "IMAGE".equals(media.media_type()) ||
+                        "CAROUSEL_ALBUM".equals(media.media_type()) ||
+                        "TEXT_POST".equals(media.media_type()))
+                .map(media -> PostingDetailResponse.of(
+                        media.id(),
+                        "",
+                        media.text(),
+                        media.timestamp(),
+                        switch (media.media_type()) {
+                            case "IMAGE" -> media.media_url() != null
+                                    ? List.of(media.media_url())
+                                    : Collections.emptyList();
+                            case "CAROUSEL_ALBUM" -> Optional.ofNullable(media.carousel_media_urls())
+                                    .orElse(Collections.emptyList());
+                            default -> Collections.emptyList();
+                        }
+                ))
+                .toList();
+
+        String nextCursor = response.paging() != null &&
+                response.paging().cursors() != null
+                ? response.paging().cursors().after()
+                : null;
+
+
+        boolean hasNext = nextCursor != null;
+
+        return new CursorSlice<>(content, nextCursor, hasNext);
     }
 
     /**
@@ -73,11 +111,20 @@ public class PostingQueryService {
      * @param member
      * @param mediaId
      */
-    public ThreadsMediaResponse.ThreadsMedia getSingleThreadsMedia(Member member, String mediaId) {
+    public PostingDetailResponse getSingleThreadsMedia(Member member, String mediaId) {
         // accessToken 가져오기
         String accessToken = accountService.getAccessToken(member, SNSType.THREADS);
-        // 스레드 API에 요청하여 미디어 데이터 가져오기
-        return threadsMediaClient.getSingleThreadsMedia(accessToken, mediaId);
+
+        ThreadsMediaResponse.ThreadsMedia threadsMedia = threadsMediaClient.getSingleThreadsMedia(accessToken, mediaId);
+
+        // 스레드 미디어를 PostingDetailResponse로 변환
+        return PostingDetailResponse.of(
+                threadsMedia.id(),
+                "",
+                threadsMedia.text(),
+                threadsMedia.timestamp(),
+                threadsMedia.carousel_media_urls()
+        );
     }
 
     public CursorSlice<PostingDetailResponse> getAllInstagramMedia(Member member, String cursor, int size) {

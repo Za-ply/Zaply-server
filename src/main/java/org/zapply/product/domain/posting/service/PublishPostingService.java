@@ -5,7 +5,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.zapply.product.domain.posting.dto.request.PostingRequest;
-import org.zapply.product.domain.posting.dto.response.ThreadsPostingResponse;
 import org.zapply.product.domain.posting.entity.Posting;
 import org.zapply.product.domain.posting.enumerate.MediaType;
 import org.zapply.product.domain.posting.enumerate.PostingState;
@@ -19,6 +18,7 @@ import org.zapply.product.global.clova.enuermerate.SNSType;
 import org.zapply.product.global.scheduler.service.SchedulingService;
 import org.zapply.product.global.snsClients.instagram.InstagramPostingClient;
 import org.zapply.product.global.snsClients.threads.ThreadsPostingClient;
+import org.zapply.product.global.snsClients.threads.ThreadsPostingResponse;
 
 import java.time.LocalDateTime;
 import java.util.List;

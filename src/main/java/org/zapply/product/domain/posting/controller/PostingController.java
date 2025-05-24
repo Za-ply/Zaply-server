@@ -8,7 +8,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.zapply.product.domain.posting.dto.request.PostingRequest;
-import org.zapply.product.domain.posting.dto.response.ThreadsInsightResponse;
+import org.zapply.product.domain.posting.dto.response.CursorSlice;
+import org.zapply.product.domain.posting.dto.response.PostingDetailResponse;
 import org.zapply.product.domain.posting.dto.response.PostingInfoResponse;
 import org.zapply.product.domain.posting.service.InstagramPostingService;
 import org.zapply.product.domain.posting.service.PostingQueryService;
@@ -17,6 +18,7 @@ import org.zapply.product.global.apiPayload.response.ApiResponse;
 import org.zapply.product.global.clova.enuermerate.SNSType;
 import org.zapply.product.global.security.AuthDetails;
 import org.zapply.product.global.snsClients.threads.ThreadsInsightClient;
+import org.zapply.product.global.snsClients.threads.ThreadsInsightResponse;
 
 
 import java.util.List;
@@ -57,8 +59,8 @@ public class PostingController {
     @PutMapping("threads/{postingId}/single/schedule")
     @Operation(summary = "threads single Media 발행 시간 수정하기", description = "SNS타입을 인자로 받아서 발행시점을 수정함")
     public ApiResponse<?> updateSingleMediaSchedule(@Valid @RequestBody PostingRequest request,
-                                         @PathVariable("postingId") Long postingId
-                                         , @RequestParam("snsType") SNSType snsType) {
+                                                    @PathVariable("postingId") Long postingId
+            , @RequestParam("snsType") SNSType snsType) {
         publishPostingService.rescheduleSingleMedia(postingId, request.scheduledAt(), snsType);
         return ApiResponse.success();
     }
@@ -86,8 +88,8 @@ public class PostingController {
     @PutMapping("threads/{postingId}/carousel/schedule")
     @Operation(summary = "threads carousel 발행 시간 수정하기", description = "SNS타입을 인자로 받아서 발행시점을 수정함")
     public ApiResponse<?> updateCarouselSchedule(@Valid @RequestBody PostingRequest request,
-                                         @PathVariable("postingId") Long postingId,
-                                         @RequestParam("snsType") SNSType snsType) {
+                                                 @PathVariable("postingId") Long postingId,
+                                                 @RequestParam("snsType") SNSType snsType) {
         publishPostingService.rescheduleCarouselMedia(postingId, request.scheduledAt(), snsType);
         return ApiResponse.success();
     }
@@ -109,15 +111,13 @@ public class PostingController {
 
     @GetMapping("/my-media")
     @Operation(summary = "SNS 게시물 리스트 조회하기", description = "SNS 게시물 리스트를 조회하는 메소드.")
-    public ApiResponse<?> getThreadsMedia(@RequestParam("snsType") SNSType snsType,
-                                          @RequestParam(name = "cursor", required = false) String cursor,
-                                          @RequestParam(name = "size", defaultValue = "9") int size,
-                                          @AuthenticationPrincipal AuthDetails authDetails) {
+    public ApiResponse<CursorSlice<PostingDetailResponse>> getMedia(@RequestParam(name = "cursor", required = false) String cursor,
+                                                                           @RequestParam(name = "size", defaultValue = "9") int size,
+                                                                           @RequestParam("snsType") SNSType snsType,
+                                                                           @AuthenticationPrincipal AuthDetails authDetails) {
         switch (snsType) {
             case THREADS:
-                return ApiResponse.success(postingQueryService.getAllThreadsMedia(authDetails.getMember()));
-            case INSTAGRAM:
-                return ApiResponse.success(postingQueryService.getAllInstagramMedia(authDetails.getMember(), cursor, size));
+                return ApiResponse.success(postingQueryService.getAllThreadsMedia(cursor, size, authDetails.getMember()));
             default:
                 return ApiResponse.success(null);
         }
@@ -125,32 +125,15 @@ public class PostingController {
 
     @GetMapping("/media")
     @Operation(summary = "SNS 단일 게시물 조회하기", description = "SNS 단일 게시물을 조회하는 메소드.")
-    public ApiResponse<?> getSingleThreadsMedia(@RequestParam("snsType") SNSType snsType,
-                                                @RequestParam("mediaId") String mediaId,
-                                                @AuthenticationPrincipal AuthDetails authDetails) {
+    public ApiResponse<PostingDetailResponse> getSingleMedia(@RequestParam("snsType") SNSType snsType,
+                                                                    @RequestParam("mediaId") String mediaId,
+                                                                    @AuthenticationPrincipal AuthDetails authDetails) {
         switch (snsType) {
             case THREADS:
                 return ApiResponse.success(postingQueryService.getSingleThreadsMedia(authDetails.getMember(), mediaId));
-            case INSTAGRAM:
-                return ApiResponse.success(postingQueryService.getSingleInstagramMedia(authDetails.getMember(), mediaId));
             default:
                 return ApiResponse.success(null);
         }
-    }
-
-    @PostMapping("/instagram/{projectId}/single")
-    @Operation(summary = "인스타그램 단일 미디어 발행하기", description = "인스타그램 단일 미디어 발행하기 메소드.")
-    public ApiResponse<?> createInstagramSingleMedia(@AuthenticationPrincipal AuthDetails authDetails,
-                                                     @Valid @RequestBody PostingRequest request,
-                                                     @PathVariable("projectId") Long projectId) {
-        if (request.scheduledAt() != null) {
-            publishPostingService.scheduleSingleMediaPublish(request, projectId, SNSType.INSTAGRAM);
-        }
-        else{
-            instagramPostingService.publishInstagramPost(
-                    authDetails.getMember(), request, projectId);
-        }
-        return ApiResponse.success();
     }
 
     @PostMapping("/instagram/{projectId}/carousel")

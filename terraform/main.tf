@@ -27,7 +27,20 @@ module "server" {
   subnet_public_id = module.network.subnet_public_id
 }
 
+module "server_green" {
+  source           = "./server_module"
+  name_prefix      = "${var.name_prefix}-green"   # 똑같은 모듈을 두 번째 호출
+  vpc_no           = module.network.vpc_no
+  subnet_public_id = module.network.subnet_public_id
+}
+
 module "storage" {
   source      = "./storage_module"
   bucket_name = "${var.name_prefix}-storage"
+}
+
+module "redis_simple" {
+  source     = "./redis_module"
+  vpc_no     = module.network.vpc_no
+  subnet_redis_id = module.network.subnet_private_redis_id
 }

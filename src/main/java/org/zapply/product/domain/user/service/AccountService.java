@@ -13,7 +13,7 @@ import org.zapply.product.domain.user.repository.AccountRepository;
 import org.zapply.product.domain.user.repository.MemberRepository;
 import org.zapply.product.global.apiPayload.exception.CoreException;
 import org.zapply.product.global.apiPayload.exception.GlobalErrorType;
-import org.zapply.product.global.snsClients.facebook.FacebookClient;
+import org.zapply.product.global.snsClients.facebook.service.FacebookClient;
 import org.zapply.product.global.snsClients.facebook.FacebookProfile;
 import org.zapply.product.global.snsClients.facebook.FacebookToken;
 import org.zapply.product.global.snsClients.linkedin.LinkedinClient;

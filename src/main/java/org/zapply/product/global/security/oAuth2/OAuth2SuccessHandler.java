@@ -10,7 +10,9 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.util.UriComponentsBuilder;
+import org.zapply.product.domain.user.dto.request.SignInRequest;
 import org.zapply.product.domain.user.dto.response.AccountsInfoResponse;
 import org.zapply.product.domain.user.dto.response.LoginResponse;
 import org.zapply.product.domain.user.dto.response.MemberResponse;
@@ -26,7 +28,10 @@ import org.zapply.product.global.security.jwt.JwtProvider;
 
 import java.io.IOException;
 import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+import java.time.Duration;
 import java.util.Map;
+import java.util.UUID;
 
 @Slf4j
 @Component
@@ -37,6 +42,7 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
     private final MemberRepository memberRepository;
     private final AccountService accountService;
     private final RedisClient redisClient;
+    private final ObjectMapper objectMapper;
 
     @Value("${jwt.token.refresh-expiration-time}")
     private long refreshTokenExpirationTime;
@@ -53,40 +59,22 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
             // DB에서 회원 조회
             Long memberId = oAuth2User.getMemberId();
             Member member = memberRepository.findById(memberId)
-                    .orElseThrow(() -> {
-                        return new CoreException(GlobalErrorType.MEMBER_NOT_FOUND);
-                    });
+                    .orElseThrow(() -> new CoreException(GlobalErrorType.MEMBER_NOT_FOUND));
 
-            // JWT 토큰 생성
+            // JWT 토큰 생성 후 Redis에 refresh token 저장
             TokenResponse tokenResponse = jwtProvider.createToken(member);
             redisClient.setValue(member.getEmail(), tokenResponse.refreshToken(), refreshTokenExpirationTime);
+
+            // LoginResponse 생성
             MemberResponse memberResponse = MemberResponse.of(member);
             AccountsInfoResponse accountsInfo = accountService.getAccountsInfo(member);
             LoginResponse loginResponse = LoginResponse.of(tokenResponse, memberResponse, accountsInfo);
-
-            Cookie loginResponseCookie = new Cookie("loginResponse", URLEncoder.encode(new ObjectMapper().writeValueAsString(loginResponse), "UTF-8"));
-            loginResponseCookie.setHttpOnly(true);
-            loginResponseCookie.setSecure(true);
-            loginResponseCookie.setPath("/");
-            loginResponseCookie.setMaxAge((int)(accessTokenExpirationTime / 1000));
-            response.addCookie(loginResponseCookie);
-
-            Cookie accessToken = new Cookie("accessToken", tokenResponse.accessToken());
-            accessToken.setHttpOnly(true);
-            accessToken.setSecure(true);
-            accessToken.setPath("/");
-            accessToken.setMaxAge((int)(accessTokenExpirationTime / 1000));
-            response.addCookie(accessToken);
-
-            Cookie refreshToken = new Cookie("refreshToken", tokenResponse.refreshToken());
-            refreshToken.setHttpOnly(true);
-            refreshToken.setSecure(true);
-            refreshToken.setPath("/");
-            refreshToken.setMaxAge((int)(refreshTokenExpirationTime / 1000));
-            response.addCookie(refreshToken);
-
-            String targetUrl = "http://localhost:3000/google/callback";
-            getRedirectStrategy().sendRedirect(request, response, targetUrl);
+            String tempCode = UUID.randomUUID().toString();
+            redisClient.setValue("auth:" + tempCode,
+                    objectMapper.writeValueAsString(loginResponse), 1000 * 60L);
+            System.out.println("auth:"+tempCode);
+            String callbackUrl = "http://localhost:3000/?code=" + tempCode;
+            getRedirectStrategy().sendRedirect(request, response, callbackUrl);
         }
         catch (IOException e) {
             throw new CoreException(GlobalErrorType.OAUTH_ERROR);

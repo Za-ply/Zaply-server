@@ -4,10 +4,11 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotNull;
 import org.zapply.product.global.clova.enuermerate.SNSType;
 
+import java.util.List;
+
 public record ToneTransferRequest(
-        @NotNull
-        @Schema(description = "변환할 SNS 타입", example = "INSTAGRAM")
-        SNSType snsType,
+        @Schema(description = "SNS 타입", example = "[\"INSTAGRAM\", \"FACEBOOK\"]")
+        List<@NotNull SNSType> snsTypes,
 
         @NotNull
         @Schema(description = "사용자 입력 콘텐츠", example = "오늘 점심 뭐 먹을지 고민이야.")

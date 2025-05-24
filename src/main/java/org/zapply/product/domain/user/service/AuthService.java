@@ -1,6 +1,8 @@
 package org.zapply.product.domain.user.service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -18,6 +20,7 @@ import org.zapply.product.global.apiPayload.exception.GlobalErrorType;
 import org.zapply.product.global.redis.RedisClient;
 import org.zapply.product.global.security.jwt.JwtProvider;
 
+@Slf4j
 @Service
 @Transactional(readOnly = true)
 @RequiredArgsConstructor
@@ -28,6 +31,7 @@ public class AuthService {
     private final RedisClient redisClient;
     private final MemberRepository memberRepository;
     private final AccountService accountService;
+    private final ObjectMapper objectMapper;
 
     @Value("${jwt.token.refresh-expiration-time}")
     private Long refreshTokenExpirationTime;
@@ -110,5 +114,17 @@ public class AuthService {
             throw new CoreException(GlobalErrorType.EMAIL_NOT_FOUND);
         }
         return memberRepository.existsByEmailAndDeletedAtIsNull(email);
+    }
+
+    public LoginResponse exchangeCodeToUserInfo(String code) {
+        String key = "auth:" + code;
+        String loginResponseJson = redisClient.getValue(key);
+        try {
+            LoginResponse loginResponse = objectMapper.readValue(loginResponseJson, LoginResponse.class);
+            redisClient.deleteValue(key);
+            return loginResponse;
+        } catch (Exception e) {
+            throw new CoreException(GlobalErrorType.INTERNAL_SERVER_ERROR);
+        }
     }
 }

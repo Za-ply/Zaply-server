@@ -100,10 +100,18 @@ public class FacebookClient {
                 .body(String.class);
         try {
             JsonNode jsonNode = objectMapper.readTree(response);
+            String pictureUrl = null;
+            if (jsonNode.has("picture")) {
+                JsonNode pictureNode = jsonNode.get("picture");
+                if (pictureNode.has("data") && pictureNode.get("data").has("url")) {
+                    pictureUrl = pictureNode.get("data").get("url").asText();
+                }
+            }
             return new FacebookProfile(
                     jsonNode.get("id").asText(),
                     jsonNode.get("name").asText(),
-                    jsonNode.has("email") ? jsonNode.get("email").asText() : null
+                    jsonNode.has("email") ? jsonNode.get("email").asText() : null,
+                    pictureUrl
             );
         } catch (IOException e) {
             throw new CoreException(GlobalErrorType.FACEBOOK_API_ERROR);

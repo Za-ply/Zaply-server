@@ -1,11 +1,11 @@
-package org.zapply.product.domain.posting.dto.response;
+package org.zapply.product.global.snsClients.instagram;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
 import org.zapply.product.domain.posting.entity.Posting;
 
 @Builder
-public record ThreadsPostingResponse(
+public record InstagramPostingResponse(
         @Schema(description = "게시물 ID", example = "1234567890")
         String postingId,
 
@@ -24,8 +24,8 @@ public record ThreadsPostingResponse(
         @Schema(description = "게시물 생성 시간", example = "2023-10-01T12:00:00Z")
         String createdAt
 ) {
-    public static ThreadsPostingResponse of(Posting posting, String mediaType, String media, String text) {
-        return ThreadsPostingResponse.builder()
+    public static InstagramPostingResponse of(Posting posting, String mediaType, String media, String text) {
+        return InstagramPostingResponse.builder()
                 .postingId(posting.getPostingId().toString())
                 .mediaId(posting.getMediaId())
                 .mediaType(mediaType)

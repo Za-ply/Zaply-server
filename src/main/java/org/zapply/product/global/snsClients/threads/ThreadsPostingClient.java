@@ -6,8 +6,7 @@ import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.util.UriComponentsBuilder;
-import org.zapply.product.domain.posting.dto.request.ThreadsPostingRequest;
-import org.zapply.product.domain.posting.dto.response.ThreadsPostingResponse;
+import org.zapply.product.domain.posting.dto.request.PostingRequest;
 import org.zapply.product.domain.posting.entity.Posting;
 import org.zapply.product.domain.posting.enumerate.PostingState;
 import org.zapply.product.domain.posting.repository.PostingRepository;
@@ -152,7 +151,7 @@ public class ThreadsPostingClient {
      * @param projectId
      * @return ThreadsPostingResponse
      */
-    public ThreadsPostingResponse createSingleMedia(Member member, ThreadsPostingRequest request, Long projectId) {
+    public ThreadsPostingResponse createSingleMedia(Member member, PostingRequest request, Long projectId) {
         try {
             Account account = getThreadsAccount(member); // 스레드 계정 정보 가져오기
             String accessToken = getAccessToken(member); // vault에서 가져온 액세스 토큰
@@ -164,7 +163,7 @@ public class ThreadsPostingClient {
         }
     }
 
-    public String createUpdatedSingleMedia(Member member, ThreadsPostingRequest request) {
+    public String createUpdatedSingleMedia(Member member, PostingRequest request) {
         try {
             Account account = getThreadsAccount(member); // 스레드 계정 정보 가져오기
             String accessToken = getAccessToken(member); // vault에서 가져온 액세스 토큰
@@ -182,7 +181,7 @@ public class ThreadsPostingClient {
      * @param projectId
      * @return ThreadsPostingResponse
      */
-    public ThreadsPostingResponse createCarouselMedia(Member member, ThreadsPostingRequest request, Long projectId) {
+    public ThreadsPostingResponse createCarouselMedia(Member member, PostingRequest request, Long projectId) {
         try {
             Account account = getThreadsAccount(member);
             String accessToken = getAccessToken(member);
@@ -211,7 +210,7 @@ public class ThreadsPostingClient {
         }
     }
 
-    public String createUpdatedCarouselMedia(Member member, ThreadsPostingRequest request) {
+    public String createUpdatedCarouselMedia(Member member, PostingRequest request) {
         try {
             Account account = getThreadsAccount(member);
             String accessToken = getAccessToken(member);

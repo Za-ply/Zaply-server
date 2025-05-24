@@ -4,8 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.zapply.product.domain.posting.dto.request.ThreadsPostingRequest;
-import org.zapply.product.domain.posting.dto.response.ThreadsPostingResponse;
+import org.zapply.product.domain.posting.dto.request.PostingRequest;
 import org.zapply.product.domain.posting.entity.Posting;
 import org.zapply.product.domain.posting.enumerate.MediaType;
 import org.zapply.product.domain.posting.enumerate.PostingState;
@@ -17,7 +16,9 @@ import org.zapply.product.global.apiPayload.exception.CoreException;
 import org.zapply.product.global.apiPayload.exception.GlobalErrorType;
 import org.zapply.product.global.clova.enuermerate.SNSType;
 import org.zapply.product.global.scheduler.service.SchedulingService;
+import org.zapply.product.global.snsClients.instagram.InstagramPostingClient;
 import org.zapply.product.global.snsClients.threads.ThreadsPostingClient;
+import org.zapply.product.global.snsClients.threads.ThreadsPostingResponse;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -33,15 +34,16 @@ public class PublishPostingService {
     private final ImageService imageService;
     private final PostingRepository postingRepository;
     private final SchedulingService schedulingService;
+    private final InstagramPostingClient instagramPostingClient;
 
     // 스레드 미디어 단일 발행하기
-    public void publishSingleMediaNow(Member member, ThreadsPostingRequest request, Long projectId) {
+    public void publishSingleMediaNow(Member member, PostingRequest request, Long projectId) {
         threadsPostingClient.createSingleMedia(member, request, projectId);
     }
 
-    // 스레드 미디어 단일 예약 발행하기
+    // 미디어 단일 예약 발행하기
     @Transactional
-    public void scheduleSingleMediaPublish(ThreadsPostingRequest request, Long projectId) {
+    public void scheduleSingleMediaPublish(PostingRequest request, Long projectId, SNSType snsType) {
         // 프로젝트 검증
         Project project = projectRepository
                 .findByProjectIdAndDeletedAtIsNull(projectId)
@@ -50,7 +52,7 @@ public class PublishPostingService {
         // Posting 엔티티 생성 및 저장
         Posting posting = Posting.builder()
                 .project(project)
-                .postingType(SNSType.THREADS)
+                .postingType(snsType)
                 .postingContent(request.text())
                 .scheduledAt(request.scheduledAt())
                 .postingState(PostingState.SCHEDULED)
@@ -62,12 +64,12 @@ public class PublishPostingService {
         schedulingService.scheduleTask(
                 posting.getPostingId(),
                 request.scheduledAt(),
-                () -> executeScheduledSingleMedia(posting.getPostingId())
+                () -> executeScheduledSingleMedia(posting.getPostingId(), snsType)
         );
     }
 
     @Transactional
-    public void rescheduleSingleMedia(Long postingId, LocalDateTime newScheduledAt) {
+    public void rescheduleSingleMedia(Long postingId, LocalDateTime newScheduledAt, SNSType snsType) {
         Posting posting = postingRepository.findByPostingIdAndPostingStateAndDeletedAtIsNull(postingId, PostingState.SCHEDULED)
                 .orElseThrow(() -> new CoreException(GlobalErrorType.POSTING_NOT_FOUND));
 
@@ -78,37 +80,47 @@ public class PublishPostingService {
         schedulingService.scheduleTask(
                 postingId,
                 newScheduledAt,
-                () -> executeScheduledSingleMedia(postingId)
+                () -> executeScheduledSingleMedia(postingId,snsType)
         );
     }
 
     @Transactional
-    public void executeScheduledSingleMedia(Long postingId) {
+    public void executeScheduledSingleMedia(Long postingId, SNSType snsType) {
         Posting posting = postingRepository.findById(postingId)
                 .orElseThrow(() -> new CoreException(GlobalErrorType.POSTING_NOT_FOUND));
 
         List<String> imageUrls = imageService.getImagesURLByPosting(posting);
         Member member = posting.getProject().getMember();
-        ThreadsPostingRequest threadsPostingRequest = ThreadsPostingRequest.of(MediaType.IMAGE, imageUrls, posting);
+        PostingRequest postingRequest = PostingRequest.of(MediaType.IMAGE, imageUrls, posting);
 
-        String mediaId = threadsPostingClient.createUpdatedSingleMedia(member, threadsPostingRequest);
+        String mediaId;
+
+        switch (snsType) {
+            case SNSType.THREADS ->
+                    mediaId = threadsPostingClient.createSingleMedia(member, postingRequest, posting.getProject().getProjectId()).mediaId();
+            case SNSType.INSTAGRAM ->
+                    mediaId = instagramPostingClient.createSingleMedia(member, postingRequest, posting.getProject().getProjectId()).mediaId();
+            default ->
+                    throw new CoreException(GlobalErrorType.SNS_TYPE_NOT_FOUND);
+        }
+
         posting.updatePostingState(PostingState.POSTED);
         posting.updateMediaId(mediaId);
     }
 
     // 스레드 미디어 캐러셀(다중) 발행하기
-    public ThreadsPostingResponse publishCarouselMediaNow(Member member, ThreadsPostingRequest request, Long projectId) {
+    public ThreadsPostingResponse publishCarouselMediaNow(Member member, PostingRequest request, Long projectId) {
         return threadsPostingClient.createCarouselMedia(member, request, projectId);
     }
 
     @Transactional
-    public void scheduleCarouselMediaPublish(ThreadsPostingRequest request, Long projectId) {
+    public void scheduleCarouselMediaPublish(PostingRequest request, Long projectId, SNSType snsType) {
         Project project = projectRepository.findByProjectIdAndDeletedAtIsNull(projectId)
                 .orElseThrow(() -> new CoreException(GlobalErrorType.PROJECT_NOT_FOUND));
 
         Posting posting = Posting.builder()
                 .project(project)
-                .postingType(SNSType.THREADS)
+                .postingType(snsType)
                 .postingContent(request.text())
                 .scheduledAt(request.scheduledAt())
                 .postingState(PostingState.SCHEDULED)
@@ -119,12 +131,12 @@ public class PublishPostingService {
         schedulingService.scheduleTask(
                 posting.getPostingId(),
                 request.scheduledAt(),
-                () -> executeScheduledCarouselMedia(posting.getPostingId())
+                () -> executeScheduledCarouselMedia(posting.getPostingId(), snsType)
         );
     }
 
     @Transactional
-    public void rescheduleCarouselMedia(Long postingId, LocalDateTime newScheduledAt) {
+    public void rescheduleCarouselMedia(Long postingId, LocalDateTime newScheduledAt, SNSType snsType) {
         Posting posting = postingRepository
                 .findByPostingIdAndPostingStateAndDeletedAtIsNull(postingId, PostingState.SCHEDULED)
                 .orElseThrow(() -> new CoreException(GlobalErrorType.POSTING_NOT_FOUND));
@@ -135,20 +147,30 @@ public class PublishPostingService {
         schedulingService.scheduleTask(
                 postingId,
                 newScheduledAt,
-                () -> executeScheduledCarouselMedia(postingId)
+                () -> executeScheduledCarouselMedia(postingId, snsType)
         );
     }
 
     @Transactional
-    public void executeScheduledCarouselMedia(Long postingId) {
+    public void executeScheduledCarouselMedia(Long postingId, SNSType snsType) {
         Posting posting = postingRepository.findById(postingId)
                 .orElseThrow(() -> new CoreException(GlobalErrorType.POSTING_NOT_FOUND));
 
         List<String> mediaUrls = imageService.getImagesURLByPosting(posting);
         Member member = posting.getProject().getMember();
-        ThreadsPostingRequest threadsPostingRequest = ThreadsPostingRequest.of(MediaType.IMAGE, mediaUrls, posting);
+        PostingRequest postingRequest = PostingRequest.of(MediaType.IMAGE, mediaUrls, posting);
 
-        String mediaId = threadsPostingClient.createUpdatedCarouselMedia(member, threadsPostingRequest);
+
+        String mediaId;
+
+        switch (snsType) {
+            case SNSType.THREADS ->
+                    mediaId = threadsPostingClient.createUpdatedCarouselMedia(member, postingRequest);
+            case SNSType.INSTAGRAM ->
+                    mediaId = instagramPostingClient.createCarouselMedia(member, postingRequest, posting.getProject().getProjectId()).mediaId();
+            default ->
+                    throw new CoreException(GlobalErrorType.SNS_TYPE_NOT_FOUND);
+        }
         posting.updatePostingState(PostingState.POSTED);
         posting.updateMediaId(mediaId);
     }

@@ -1,20 +1,18 @@
 package org.zapply.product.domain.posting.dto.request;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
-import com.fasterxml.jackson.annotation.JsonUnwrapped;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.NotNull;
 import lombok.Builder;
 import org.zapply.product.domain.posting.entity.Posting;
 import org.zapply.product.domain.posting.enumerate.MediaType;
-import org.zapply.product.global.clova.enuermerate.SNSType;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
 @Builder
-public record ThreadsPostingRequest(
+public record PostingRequest(
         @NotNull
         @Schema(description = "미디어 타입", example = "IMAGE || VIDEO || TEXT")
         MediaType mediaType,
@@ -35,8 +33,8 @@ public record ThreadsPostingRequest(
         @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm")
         LocalDateTime scheduledAt
 ) {
-        public static ThreadsPostingRequest of(MediaType mediaType, List<String> imageUrls, Posting posting){
-                return ThreadsPostingRequest.builder()
+        public static PostingRequest of(MediaType mediaType, List<String> imageUrls, Posting posting){
+                return PostingRequest.builder()
                         .mediaType(mediaType)
                         .media(imageUrls)
                         .text(posting.getPostingContent())

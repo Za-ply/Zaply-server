@@ -28,6 +28,7 @@ import org.zapply.product.global.security.jwt.JwtProvider;
 
 import java.io.IOException;
 import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
 @Slf4j
@@ -39,6 +40,7 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
     private final MemberRepository memberRepository;
     private final AccountService accountService;
     private final RedisClient redisClient;
+    private final ObjectMapper objectMapper;
 
     @Value("${jwt.token.refresh-expiration-time}")
     private long refreshTokenExpirationTime;
@@ -55,17 +57,26 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
             // DB에서 회원 조회
             Long memberId = oAuth2User.getMemberId();
             Member member = memberRepository.findById(memberId)
-                    .orElseThrow(() -> {
-                        return new CoreException(GlobalErrorType.MEMBER_NOT_FOUND);
-                    });
+                    .orElseThrow(() -> new CoreException(GlobalErrorType.MEMBER_NOT_FOUND));
 
-            // JWT 토큰 생성
+            // JWT 토큰 생성 후 Redis에 refresh token 저장
             TokenResponse tokenResponse = jwtProvider.createToken(member);
             redisClient.setValue(member.getEmail(), tokenResponse.refreshToken(), refreshTokenExpirationTime);
+
+            // LoginResponse 생성
             MemberResponse memberResponse = MemberResponse.of(member);
             AccountsInfoResponse accountsInfo = accountService.getAccountsInfo(member);
             LoginResponse loginResponse = LoginResponse.of(tokenResponse, memberResponse, accountsInfo);
-            request.getSession().setAttribute("loginResponse", loginResponse);
+
+            // JSON으로 직렬화하여 쿠키에 세팅 (프론트에서 읽을 수 있도록 HttpOnly=false)
+            String json = objectMapper.writeValueAsString(loginResponse);
+            String encoded = URLEncoder.encode(json, StandardCharsets.UTF_8);
+            Cookie cookie = new Cookie("loginResponse", encoded);
+            cookie.setPath("/");
+            cookie.setHttpOnly(false);
+            cookie.setMaxAge((int) (accessTokenExpirationTime / 1000));
+            response.addCookie(cookie);
+
             String targetUrl = "http://localhost:3000/google/callback";
             getRedirectStrategy().sendRedirect(request, response, targetUrl);
         }

@@ -62,4 +62,9 @@ public class Account extends BaseTimeEntity {
     public void updateTokenExpireAt(LocalDateTime tokenExpireAt) {
         this.tokenExpireAt = tokenExpireAt;
     }
+
+    public void updateInfo(String accountName, String profileImageUrl) {
+        this.accountName = accountName;
+        this.profileImageUrl = profileImageUrl;
+    }
 }

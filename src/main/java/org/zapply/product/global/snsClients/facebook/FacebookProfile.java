@@ -5,5 +5,7 @@ public record FacebookProfile(
 
         String name,
 
-        String email
+        String email,
+
+        String picture
 ) {}

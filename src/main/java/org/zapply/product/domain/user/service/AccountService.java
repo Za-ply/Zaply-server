@@ -94,6 +94,7 @@ public class AccountService {
                 .map(existingAccount -> {
                     // 토큰 만료일 갱신
                     existingAccount.updateTokenExpireAt(LocalDateTime.now().plusDays(60));
+                    existingAccount.updateInfo(facebookProfile.name(), facebookProfile.picture());
                     return accountRepository.save(existingAccount);
                 })
                 .orElseGet(() -> {
@@ -106,6 +107,7 @@ public class AccountService {
                             .member(member)
                             .tokenExpireAt(LocalDateTime.now().plusDays(60))
                             .userId(facebookProfile.id())
+                            .profileImageUrl(facebookProfile.picture())
                             .build();
                     return accountRepository.save(newAccount);
                 });
@@ -137,6 +139,7 @@ public class AccountService {
                 .map(existingAccount -> {
                     // 토큰 만료일 갱신
                     existingAccount.updateTokenExpireAt(LocalDateTime.now().plusDays(60));
+                    existingAccount.updateInfo(profile.name(), profile.profilePictureUrl());
                     return accountRepository.save(existingAccount);
                 })
                 .orElseGet(() -> {
@@ -149,6 +152,7 @@ public class AccountService {
                             .member(member)
                             .tokenExpireAt(LocalDateTime.now().plusDays(60))
                             .userId(profile.id())
+                            .profileImageUrl(profile.profilePictureUrl())
                             .build();
                     return accountRepository.save(newAccount);
                 });
@@ -313,6 +317,7 @@ public class AccountService {
                 .map(existingAccount -> {
                     // 토큰 만료일 갱신
                     existingAccount.updateTokenExpireAt(LocalDateTime.now().plusDays(60));
+                    existingAccount.updateInfo(instagramProfile.username(), instagramProfile.profilePictureUrl());
                     return accountRepository.save(existingAccount);
                 })
                 .orElseGet(() -> {

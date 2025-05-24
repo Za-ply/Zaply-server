@@ -5,6 +5,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.zapply.product.domain.posting.dto.response.CursorSlice;
+import org.zapply.product.domain.posting.dto.response.PostingDetailResponse;
 import org.zapply.product.domain.posting.dto.response.PostingInfoResponse;
 import org.zapply.product.domain.posting.entity.Posting;
 import org.zapply.product.domain.posting.repository.PostingRepository;
@@ -12,6 +14,7 @@ import org.zapply.product.domain.project.repository.ProjectRepository;
 import org.zapply.product.domain.user.entity.Member;
 import org.zapply.product.global.apiPayload.exception.CoreException;
 import org.zapply.product.global.apiPayload.exception.GlobalErrorType;
+import org.zapply.product.global.snsClients.threads.ThreadsMediaResponse;
 import org.zapply.product.global.snsClients.threads.ThreadsMediaResponse.ThreadsMedia;
 import org.zapply.product.domain.user.service.AccountService;
 import org.zapply.product.global.clova.enuermerate.SNSType;
@@ -122,9 +125,9 @@ class PostingQueryServiceTest {
                 .gif_url(null)
                 .build();
         List<ThreadsMedia> mediaList = List.of(media);
-        given(threadsMediaClient.getAllThreadsMedia("token123")).willReturn(mediaList);
-
-        List<ThreadsMedia> result = service.getAllThreadsMedia(member);
+        given(threadsMediaClient.getAllThreadsMedia("token123", null, 10))
+                .willReturn(new ThreadsMediaResponse(mediaList, null));
+        CursorSlice<PostingDetailResponse> result = service.getAllThreadsMedia(null, 10, member);
         assertThat(result).isSameAs(mediaList);
     }
 
@@ -155,8 +158,7 @@ class PostingQueryServiceTest {
                 .gif_url("gifUrl")
                 .build();
         given(threadsMediaClient.getSingleThreadsMedia("tokenXYZ", "media2")).willReturn(item);
-
-        ThreadsMedia result = service.getSingleThreadsMedia(member, "media2");
+        PostingDetailResponse result = service.getSingleThreadsMedia( member, "media2");
         assertThat(result).isSameAs(item);
     }
 }

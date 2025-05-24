@@ -6,6 +6,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 import org.zapply.product.domain.posting.dto.request.ToneTransferRequest;
+import org.zapply.product.domain.posting.dto.response.ToneTransferResponse;
 import org.zapply.product.domain.posting.service.ClovaService;
 import org.zapply.product.global.apiPayload.response.ApiResponse;
 
@@ -19,7 +20,7 @@ public class ClovaController {
 
     @PostMapping("/transfer")
     @Operation(summary = "SNS 글 분위기 변환", description = "입력된 콘텐츠를 지정된 SNS 타입에 맞춰 변환합니다.")
-    public ApiResponse<String> transferToSNSTone(@Valid @RequestBody ToneTransferRequest toneTransferRequest) {
+    public ApiResponse<ToneTransferResponse> transferToSNSTone(@Valid @RequestBody ToneTransferRequest toneTransferRequest) {
         return ApiResponse.success(clovaService.TransferToSNSTone(toneTransferRequest));
     }
 

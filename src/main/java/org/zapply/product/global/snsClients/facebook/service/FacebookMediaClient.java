@@ -58,7 +58,7 @@ public class FacebookMediaClient {
         }
     }
 
-//    // 페이지아이디 조회
+//    // 프로필 조회
 //    public String getProfilePicUrl(String pageId, String accessToken) {
 //        URI uri = UriComponentsBuilder.fromHttpUrl(FB_GRAPH_BASE + "/" + pageId + "/picture?fields=url&redirect=false").build().encode().toUri();
 //

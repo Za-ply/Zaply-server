@@ -41,10 +41,6 @@ public class FacebookPostingClient {
                 .orElseThrow(() -> new CoreException(GlobalErrorType.ACCOUNT_NOT_FOUND));
     }
 
-    private String getAccessToken(Member member) {
-        return accountService.getAccessToken(member, SNSType.FACEBOOK);
-    }
-
     public String createSinglePost(String accessToken, String pageId, String message) {
         URI uri = UriComponentsBuilder.fromHttpUrl(FB_GRAPH_BASE + "/" + pageId + "/feed")
                 .queryParam("message", message).build().encode().toUri();
@@ -63,7 +59,7 @@ public class FacebookPostingClient {
         }
     }
 
-    public String publishSinglePhoto(String accessToken, String pageId, String photoUrl, String message) {
+    public String publishSinglePhotoAndPost(String accessToken, String pageId, String photoUrl, String message) {
         URI uri = UriComponentsBuilder
                 .fromHttpUrl(FB_GRAPH_BASE + "/" + pageId + "/photos")
                 .queryParam("url", photoUrl)
@@ -84,34 +80,34 @@ public class FacebookPostingClient {
         }
     }
 
-        public String createPagePost(String accessToken, String pageId, String message, List<String> photoUrls) {
-            try {
-                URI feedUri = UriComponentsBuilder
-                        .fromHttpUrl(FB_GRAPH_BASE + "/" + pageId + "/feed")
-                        .build().encode()
-                        .toUri();
+    public String createPagePost(String accessToken, String pageId, String message, List<String> photoUrls) {
+        try {
+            URI feedUri = UriComponentsBuilder
+                    .fromHttpUrl(FB_GRAPH_BASE + "/" + pageId + "/feed")
+                    .build().encode()
+                    .toUri();
 
                 // --- 사진이 있으면 unpublished 업로드 후 attached_media 배열 생성 ---
-                Map<String,Object> payload = new HashMap<>();
-                if (photoUrls != null && !photoUrls.isEmpty()) {
+            Map<String,Object> payload = new HashMap<>();
+            if (photoUrls != null && !photoUrls.isEmpty()) {
                     List<Map<String,String>> attached = photoUrls.stream()
                             .map(url -> Map.of("media_fbid", uploadUnpublishedPhoto(pageId, accessToken, url)))
                             .collect(Collectors.toList());
                     payload.put("attached_media", attached);
-                }
+            }
 
                 // --- 메시지가 있으면 payload 에 삽입 ---
-                if (message != null && !message.isBlank()) {
+            if (message != null && !message.isBlank()) {
                     payload.put("message", message);
-                }
+            }
 
                 // --- case: 사진도 없고 메시지도 없으면 예외 처리 ---
-                if (payload.isEmpty()) {
+            if (payload.isEmpty()) {
                     throw new IllegalArgumentException("message와 photoUrls 중 최소 하나는 제공되어야 합니다.");
-                }
+            }
 
-                @SuppressWarnings("unchecked")
-                Map<String,Object> resp = restClient.post()
+            @SuppressWarnings("unchecked")
+            Map<String,Object> resp = restClient.post()
                         .uri(feedUri)
                         .header(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken)
                         .contentType(MediaType.APPLICATION_JSON)
@@ -119,12 +115,12 @@ public class FacebookPostingClient {
                         .retrieve()
                         .body(Map.class);
 
-                return (String) resp.get("id");
-            } catch (Exception ex) {
+            return (String) resp.get("id");
+        } catch (Exception ex) {
                 log.error("Error creating Facebook page post", ex);
                 throw new CoreException(GlobalErrorType.FACEBOOK_API_ERROR);
-            }
         }
+    }
 
     /**
      * helper: 사진 URL을 unpublished 상태로 업로드하고 media_fbid만 반환

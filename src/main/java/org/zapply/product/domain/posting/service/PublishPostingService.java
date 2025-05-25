@@ -35,6 +35,7 @@ public class PublishPostingService {
     private final PostingRepository postingRepository;
     private final SchedulingService schedulingService;
     private final InstagramPostingClient instagramPostingClient;
+    private final FacebookPostingService facebookPostingService;
 
     // 스레드 미디어 단일 발행하기
     public void publishSingleMediaNow(Member member, PostingRequest request, Long projectId) {
@@ -100,6 +101,8 @@ public class PublishPostingService {
                     mediaId = threadsPostingClient.createSingleMedia(member, postingRequest, posting.getProject().getProjectId()).mediaId();
             case SNSType.INSTAGRAM ->
                     mediaId = instagramPostingClient.createSingleMedia(member, postingRequest, posting.getProject().getProjectId()).mediaId();
+            case SNSType.FACEBOOK ->
+                    mediaId = facebookPostingService.publishPostWithSinglePhotoAndText(member, postingRequest.text(), postingRequest.media().getFirst());
             default ->
                     throw new CoreException(GlobalErrorType.SNS_TYPE_NOT_FOUND);
         }
@@ -151,6 +154,12 @@ public class PublishPostingService {
         );
     }
 
+    /**
+     * 예약된 캐러셀 미디어 게시 실행
+     *
+     * @param postingId 게시물 ID
+     * @param snsType   SNS 타입
+     */
     @Transactional
     public void executeScheduledCarouselMedia(Long postingId, SNSType snsType) {
         Posting posting = postingRepository.findById(postingId)
@@ -168,6 +177,8 @@ public class PublishPostingService {
                     mediaId = threadsPostingClient.createUpdatedCarouselMedia(member, postingRequest);
             case SNSType.INSTAGRAM ->
                     mediaId = instagramPostingClient.createCarouselMedia(member, postingRequest, posting.getProject().getProjectId()).mediaId();
+            case SNSType.FACEBOOK ->
+                    mediaId = facebookPostingService.publishPostWithMultiPhotoAndText(member, postingRequest.text(),postingRequest.media());
             default ->
                     throw new CoreException(GlobalErrorType.SNS_TYPE_NOT_FOUND);
         }

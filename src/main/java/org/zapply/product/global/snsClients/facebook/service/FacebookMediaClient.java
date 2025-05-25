@@ -24,10 +24,7 @@ public class FacebookMediaClient {
     private final ObjectMapper objectMapper;
 
     @SuppressWarnings("unchecked")
-    public String getPagePosts() {
-        String accessToken = "EAATzaPjtTXIBO7lps5jSB1ADyDCFdMv6ndYPdVf8H1fVeZCBv7b6QNBdE2hx6aHEKUJrEuvcLOQZA4hn5pijTyj0ZBRKRBuJjwWOw0J7j5YKylMJJujCp6TZC3ZBIZBaEddahfa8RqjGaEmW7BuRYZAfpvO4peYQhjM45WxErggiOjkR4kXbPtWUH0758Vjg5sFJkFIxqQDJ78Dlun1QFMLeC8TrvRZC";
-        String pageId = "659684727223983";
-
+    public String getPagePosts(String accessToken, String pageId) {
         URI uri = UriComponentsBuilder.fromHttpUrl(FB_GRAPH_BASE + "/" + pageId + "/feed").build().encode().toUri();
 
         try {
@@ -45,9 +42,7 @@ public class FacebookMediaClient {
     }
 
     // 페이지아이디 조회
-    public String getPageId() {
-        String accessToken = "EAATzaPjtTXIBO7lps5jSB1ADyDCFdMv6ndYPdVf8H1fVeZCBv7b6QNBdE2hx6aHEKUJrEuvcLOQZA4hn5pijTyj0ZBRKRBuJjwWOw0J7j5YKylMJJujCp6TZC3ZBIZBaEddahfa8RqjGaEmW7BuRYZAfpvO4peYQhjM45WxErggiOjkR4kXbPtWUH0758Vjg5sFJkFIxqQDJ78Dlun1QFMLeC8TrvRZC";
-
+    public String getPageId(String accessToken) {
         URI uri = UriComponentsBuilder.fromHttpUrl(FB_GRAPH_BASE + "/me").build().encode().toUri();
 
         try {
@@ -63,23 +58,20 @@ public class FacebookMediaClient {
         }
     }
 
-    // 페이지아이디 조회
-    public String getProfilePicUrl() {
-        String accessToken = "EAATzaPjtTXIBO0C3NTn13UnE83J2fKcWDZBGu3v3wP9sGaZAN6IltMaGJIKcWHcTv1yF6F72vRzt1cXiwQDCl9QyPkzYw3jPhLiAZAlWpbVZCJ3FCGdKU28oDYTN5ecpXPzLSzdcfZCkTXhVr5rvgpSODtZC25EatMIdu3MWYWlyZCYc3ZAZCZAAmJpVYRRoJeMZBjLEJbcjNdLxTtNnrjfC3UCO8f5mSa9qU8r";
-        String pageId = "659684727223983";
-
-        URI uri = UriComponentsBuilder.fromHttpUrl(FB_GRAPH_BASE + "/" + pageId + "/picture?fields=url&redirect=false").build().encode().toUri();
-
-        try {
-            String response = restClient.get().uri(uri)
-                    .header("Authorization", "Bearer " + accessToken)
-                    .retrieve().body(String.class);
-
-            JsonNode root = objectMapper.readTree(response);
-            return root.path("data").path("url").asText();
-        } catch (Exception e) {
-            log.error("Error fetching Facebook page posts", e);
-            throw new CoreException(GlobalErrorType.FACEBOOK_API_ERROR);
-        }
-    }
+//    // 페이지아이디 조회
+//    public String getProfilePicUrl(String pageId, String accessToken) {
+//        URI uri = UriComponentsBuilder.fromHttpUrl(FB_GRAPH_BASE + "/" + pageId + "/picture?fields=url&redirect=false").build().encode().toUri();
+//
+//        try {
+//            String response = restClient.get().uri(uri)
+//                    .header("Authorization", "Bearer " + accessToken)
+//                    .retrieve().body(String.class);
+//
+//            JsonNode root = objectMapper.readTree(response);
+//            return root.path("data").path("url").asText();
+//        } catch (Exception e) {
+//            log.error("Error fetching Facebook page posts", e);
+//            throw new CoreException(GlobalErrorType.FACEBOOK_API_ERROR);
+//        }
+//    }
 }

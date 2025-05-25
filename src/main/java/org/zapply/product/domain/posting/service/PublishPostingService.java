@@ -174,4 +174,6 @@ public class PublishPostingService {
         posting.updatePostingState(PostingState.POSTED);
         posting.updateMediaId(mediaId);
     }
+
+
 }

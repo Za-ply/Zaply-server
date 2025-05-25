@@ -45,10 +45,7 @@ public class FacebookPostingClient {
         return accountService.getAccessToken(member, SNSType.FACEBOOK);
     }
 
-    public String createSinglePost(String message) {
-        String accessToken = "EAATzaPjtTXIBO7lps5jSB1ADyDCFdMv6ndYPdVf8H1fVeZCBv7b6QNBdE2hx6aHEKUJrEuvcLOQZA4hn5pijTyj0ZBRKRBuJjwWOw0J7j5YKylMJJujCp6TZC3ZBIZBaEddahfa8RqjGaEmW7BuRYZAfpvO4peYQhjM45WxErggiOjkR4kXbPtWUH0758Vjg5sFJkFIxqQDJ78Dlun1QFMLeC8TrvRZC";
-        String pageId = "659684727223983";
-
+    public String createSinglePost(String accessToken, String pageId, String message) {
         URI uri = UriComponentsBuilder.fromHttpUrl(FB_GRAPH_BASE + "/" + pageId + "/feed")
                 .queryParam("message", message).build().encode().toUri();
         try {
@@ -66,10 +63,7 @@ public class FacebookPostingClient {
         }
     }
 
-    public String publishSinglePhoto(String photoUrl, String message) {
-        String accessToken = "EAATzaPjtTXIBOZB8GpfTFYRnAQ3pJYSHEZARagDesWHc4SOZB6TqF9YPsvHlaivqjZCRz3BvOas0IcwbhMW3fcaHsJus1nx66WxAtkob7ZB8qljtvvzxFcU8uPyhsA5hZAGNUVs7dlwn1uuXJj1xXIazgZBJWwVeES3MNahNcNQQP1E6EmRbmkLCF9Sn58Wiz7ZCJdFYWezKhdJ4u7peY3ZCH1f3ffOtRLG0z";
-        String pageId = "659684727223983";
-
+    public String publishSinglePhoto(String accessToken, String pageId, String photoUrl, String message) {
         URI uri = UriComponentsBuilder
                 .fromHttpUrl(FB_GRAPH_BASE + "/" + pageId + "/photos")
                 .queryParam("url", photoUrl)
@@ -90,9 +84,7 @@ public class FacebookPostingClient {
         }
     }
 
-        public String createPagePost(String message, List<String> photoUrls) {
-            String accessToken = "EAATzaPjtTXIBOZB8GpfTFYRnAQ3pJYSHEZARagDesWHc4SOZB6TqF9YPsvHlaivqjZCRz3BvOas0IcwbhMW3fcaHsJus1nx66WxAtkob7ZB8qljtvvzxFcU8uPyhsA5hZAGNUVs7dlwn1uuXJj1xXIazgZBJWwVeES3MNahNcNQQP1E6EmRbmkLCF9Sn58Wiz7ZCJdFYWezKhdJ4u7peY3ZCH1f3ffOtRLG0z";
-            String pageId = "659684727223983";
+        public String createPagePost(String accessToken, String pageId, String message, List<String> photoUrls) {
             try {
                 URI feedUri = UriComponentsBuilder
                         .fromHttpUrl(FB_GRAPH_BASE + "/" + pageId + "/feed")

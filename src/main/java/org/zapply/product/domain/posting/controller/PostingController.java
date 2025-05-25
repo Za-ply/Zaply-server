@@ -11,6 +11,7 @@ import org.zapply.product.domain.posting.dto.request.PostingRequest;
 import org.zapply.product.domain.posting.dto.response.CursorSlice;
 import org.zapply.product.domain.posting.dto.response.PostingDetailResponse;
 import org.zapply.product.domain.posting.dto.response.PostingInfoResponse;
+import org.zapply.product.domain.posting.service.FacebookPostingService;
 import org.zapply.product.domain.posting.service.InstagramPostingService;
 import org.zapply.product.domain.posting.service.PostingQueryService;
 import org.zapply.product.domain.posting.service.PublishPostingService;
@@ -34,6 +35,7 @@ public class PostingController {
     private final PostingQueryService postingQueryService;
     private final ThreadsInsightClient threadsInsightClient;
     private final InstagramPostingService instagramPostingService;
+    private final FacebookPostingService facebookPostingService;
 
     // 사용자의 프로젝트에 존재하는 포스팅 조회를 위한 API
     @GetMapping("/{projectId}")
@@ -147,6 +149,34 @@ public class PostingController {
         else{
             instagramPostingService.publishInstagramCarousel(
                     authDetails.getMember(), request, projectId);
+        }
+        return ApiResponse.success();
+    }
+
+    @PostMapping("/facebook/{projectId}/carousel")
+    @Operation(summary = "페이스북 캐러셀 미디어 발행하기", description = "페이스북 캐러셀 미디어 발행하기 메소드.")
+    public ApiResponse<?> createFacebookCarouselMedia(@AuthenticationPrincipal AuthDetails authDetails,
+                                                       @Valid @RequestBody PostingRequest request,
+                                                       @PathVariable("projectId") Long projectId) {
+        if (request.scheduledAt() != null) {
+            publishPostingService.scheduleCarouselMediaPublish(request, projectId, SNSType.FACEBOOK);
+        }
+        else{
+            facebookPostingService.publishPostWithMultiPhotoAndText(authDetails.getMember(), request.text(), request.media());
+        }
+        return ApiResponse.success();
+    }
+
+    @PostMapping("/facebook/{projectId}/single")
+    @Operation(summary = "페이스북 싱글 미디어 발행하기", description = "페이스북 싱글 미디어 발행하기 메소드.")
+    public ApiResponse<?> createFacebookSingleMedia(@AuthenticationPrincipal AuthDetails authDetails,
+                                                      @Valid @RequestBody PostingRequest request,
+                                                      @PathVariable("projectId") Long projectId) {
+        if (request.scheduledAt() != null) {
+            publishPostingService.scheduleSingleMediaPublish(request, projectId, SNSType.FACEBOOK);
+        }
+        else{
+            facebookPostingService.publishPostWithSinglePhotoAndText(authDetails.getMember(), request.text(), request.media().getFirst());
         }
         return ApiResponse.success();
     }

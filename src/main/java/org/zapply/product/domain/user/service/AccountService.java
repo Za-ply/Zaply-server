@@ -13,9 +13,10 @@ import org.zapply.product.domain.user.repository.AccountRepository;
 import org.zapply.product.domain.user.repository.MemberRepository;
 import org.zapply.product.global.apiPayload.exception.CoreException;
 import org.zapply.product.global.apiPayload.exception.GlobalErrorType;
+import org.zapply.product.global.snsClients.facebook.service.FacebookClient;
+import org.zapply.product.global.snsClients.facebook.service.FacebookMediaClient;
 import org.zapply.product.global.snsClients.instagram.InstagramBusinessResponse;
 import org.zapply.product.global.snsClients.instagram.InstagramClient;
-import org.zapply.product.global.snsClients.facebook.FacebookClient;
 import org.zapply.product.global.snsClients.facebook.FacebookProfile;
 import org.zapply.product.global.snsClients.facebook.FacebookToken;
 import org.zapply.product.global.snsClients.instagram.InstagramProfile;
@@ -39,12 +40,13 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class AccountService {
     private final AccountRepository accountRepository;
-    private final FacebookClient facebookClient;
     private final ThreadsClient threadsClient;
     private final VaultClient vaultClient;
     private final LinkedinClient linkedinClient;
     private final MemberRepository memberRepository;
     private final InstagramClient instagramClient;
+    private final FacebookClient facebookClient;
+    private final FacebookMediaClient facebookMediaClient;
 
     @Value("${spring.security.oauth2.client.registration.facebook.redirect-uri}")
     private String facebookRedirectUrl;
@@ -76,9 +78,10 @@ public class AccountService {
         // 페이스북으로 액세스 토큰 요청하기
         FacebookToken shortFacebookAccessToken = facebookClient.getFacebookAccessToken(code, facebookRedirectUrl);
         FacebookToken longFacebookAccessToken = facebookClient.getLongLivedToken(shortFacebookAccessToken.accessToken());
-
+        String pageId =  facebookMediaClient.getPageId(longFacebookAccessToken.accessToken());
+        FacebookToken longFacebookPageAccessToken = facebookClient.getLongLivedPageAccessToken(pageId, longFacebookAccessToken.accessToken());
         // 페이스북에 있는 사용자 정보 반환
-        FacebookProfile facebookProfile = facebookClient.getMemberInfo(longFacebookAccessToken);
+        FacebookProfile facebookProfile = facebookClient.getMemberInfo(longFacebookPageAccessToken);
 
         // 반환된 정보의 이메일 추출
         String email = facebookProfile.email();
@@ -111,7 +114,7 @@ public class AccountService {
                             .build();
                     return accountRepository.save(newAccount);
                 });
-        vaultClient.saveSecret(facebookPath, key, longFacebookAccessToken.accessToken());
+        vaultClient.saveSecret(facebookPath, key, longFacebookPageAccessToken.accessToken());
 
         return key;
     }

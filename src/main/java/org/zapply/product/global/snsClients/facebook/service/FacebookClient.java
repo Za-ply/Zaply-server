@@ -1,4 +1,4 @@
-package org.zapply.product.global.snsClients.facebook;
+package org.zapply.product.global.snsClients.facebook.service;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -6,12 +6,16 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
+import org.springframework.web.util.UriComponentsBuilder;
 import org.zapply.product.domain.user.entity.Member;
 import org.zapply.product.domain.user.repository.MemberRepository;
 import org.zapply.product.global.apiPayload.exception.CoreException;
 import org.zapply.product.global.apiPayload.exception.GlobalErrorType;
+import org.zapply.product.global.snsClients.facebook.FacebookProfile;
+import org.zapply.product.global.snsClients.facebook.FacebookToken;
 
 import java.io.IOException;
+import java.net.URI;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 
@@ -37,7 +41,7 @@ public class FacebookClient {
 
     private final ObjectMapper objectMapper;
     private final RestClient restClient = RestClient.create();
-
+    private static final String FB_GRAPH_BASE = "https://graph.facebook.com/v22.0";
 
     /**
      * 페이스북 로그인 URL 생성
@@ -140,4 +144,34 @@ public class FacebookClient {
             throw new CoreException(GlobalErrorType.FACEBOOK_API_ERROR);
         }
     }
+
+    public FacebookToken getPageAccessToken(String userId, String userAccessToken) {
+        URI uri = UriComponentsBuilder.fromHttpUrl(FB_GRAPH_BASE + "/" + userId + "/accounts").build().encode().toUri();
+        try {
+            String response = restClient.get().uri(uri)
+                    .header("Authorization", "Bearer " + userAccessToken)
+                    .retrieve().body(String.class);
+
+            JsonNode jsonNode = objectMapper.readTree(response);
+            return new FacebookToken(jsonNode.at("/data/0/access_token").asText(null));
+        } catch (IOException e) {
+            throw new CoreException(GlobalErrorType.FACEBOOK_API_ERROR);
+        }
+    }
+
+    public FacebookToken getLongLivedPageAccessToken(String userId, String userAccessToken) {
+        URI uri = UriComponentsBuilder.fromHttpUrl(FB_GRAPH_BASE + "/" + userId + "/accounts").build().encode().toUri();
+        try {
+            String response = restClient.get().uri(uri)
+                    .header("Authorization", "Bearer " + userAccessToken)
+                    .retrieve().body(String.class);
+
+            JsonNode jsonNode = objectMapper.readTree(response);
+            return new FacebookToken(jsonNode.at("/data/0/access_token").asText(null));
+        } catch (IOException e) {
+            throw new CoreException(GlobalErrorType.FACEBOOK_API_ERROR);
+        }
+    }
+
+
 }

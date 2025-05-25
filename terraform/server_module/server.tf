@@ -14,17 +14,59 @@ resource "ncloud_access_control_group" "bastion_acg" {
     vpc_no      = var.vpc_no
 }
 resource "ncloud_access_control_group_rule" "ssh" {
-    access_control_group_no = ncloud_access_control_group.bastion_acg.id
-    inbound {
-        protocol   = "TCP"
-        ip_block   = "0.0.0.0/0"
-        port_range = "22"
-    }
-    outbound {
-      protocol = "TCP"
-      ip_block = "0.0.0.0/0"
-      port_range = "1-65535"
-    }
+  access_control_group_no = ncloud_access_control_group.bastion_acg.id
+
+  inbound {
+    protocol   = "TCP"
+    ip_block   = "0.0.0.0/0"
+    port_range = "22"
+  }
+  inbound {
+    protocol   = "TCP"
+    ip_block   = "0.0.0.0/0"
+    port_range = "80"
+  }
+  inbound {
+    protocol   = "TCP"
+    ip_block   = "0.0.0.0/0"
+    port_range = "3000"
+  }
+  inbound {
+    protocol   = "TCP"
+    ip_block   = "0.0.0.0/0"
+    port_range = "3389"
+  }
+  inbound {
+    protocol   = "TCP"
+    ip_block   = "0.0.0.0/0"
+    port_range = "443"
+  }
+  inbound {
+    protocol   = "TCP"
+    ip_block   = "0.0.0.0/0"
+    port_range = "8000"
+  }
+  inbound {
+    protocol   = "TCP"
+    ip_block   = "0.0.0.0/0"
+    port_range = "8080"
+  }
+  inbound {
+    protocol   = "TCP"
+    ip_block   = "0.0.0.0/0"
+    port_range = "8200"
+  }
+  inbound {
+    protocol   = "TCP"
+    ip_block   = "0.0.0.0/0"
+    port_range = "8201"
+  }
+
+  outbound {
+    protocol   = "TCP"
+    ip_block   = "0.0.0.0/0"
+    port_range = "1-65535"
+  }
 }
 
 resource "ncloud_access_control_group_rule" "http" {
@@ -34,6 +76,46 @@ resource "ncloud_access_control_group_rule" "http" {
     protocol   = "TCP"
     ip_block   = "0.0.0.0/0"
     port_range = "80"
+  }
+  inbound {
+    protocol   = "TCP"
+    ip_block   = "0.0.0.0/0"
+    port_range = "22"
+  }
+  inbound {
+    protocol   = "TCP"
+    ip_block   = "0.0.0.0/0"
+    port_range = "3000"
+  }
+  inbound {
+    protocol   = "TCP"
+    ip_block   = "0.0.0.0/0"
+    port_range = "3389"
+  }
+  inbound {
+    protocol   = "TCP"
+    ip_block   = "0.0.0.0/0"
+    port_range = "443"
+  }
+  inbound {
+    protocol   = "TCP"
+    ip_block   = "0.0.0.0/0"
+    port_range = "8000"
+  }
+  inbound {
+    protocol   = "TCP"
+    ip_block   = "0.0.0.0/0"
+    port_range = "8080"
+  }
+  inbound {
+    protocol   = "TCP"
+    ip_block   = "0.0.0.0/0"
+    port_range = "8200"
+  }
+  inbound {
+    protocol   = "TCP"
+    ip_block   = "0.0.0.0/0"
+    port_range = "8201"
   }
 
   outbound {

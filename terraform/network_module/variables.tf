@@ -9,3 +9,12 @@ variable "zone" {
     description = "Public Subnet 가용 영역"
     default     = "KR-2"
 }
+variable "zone_private_redis" {
+    description = "Redis 전용 Private Subnet 가용 영역"
+    default     = "KR-2"
+}
+
+variable "zone_private_postgres" {
+    description = "PostgreSQL 전용 Private Subnet 가용 영역"
+    default     = "KR-2"
+}

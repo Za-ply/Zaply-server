@@ -101,7 +101,7 @@ public class PostingQueryService {
                 : null;
 
 
-        boolean hasNext = nextCursor != null;
+        boolean hasNext = (nextCursor != null && content.size() == size);
 
         return new CursorSlice<>(content, nextCursor, hasNext);
     }

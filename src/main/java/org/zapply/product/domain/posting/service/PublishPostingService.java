@@ -141,13 +141,14 @@ public class PublishPostingService {
     }
 
     @Transactional
-    public void rescheduleCarouselMedia(Long postingId, LocalDateTime newScheduledAt, SNSType snsType) {
+    public void rescheduleCarouselMedia(Long postingId, LocalDateTime newScheduledAt, SNSType snsType, String content) {
         Posting posting = postingRepository
                 .findByPostingIdAndPostingStateAndDeletedAtIsNull(postingId, PostingState.SCHEDULED)
                 .orElseThrow(() -> new CoreException(GlobalErrorType.POSTING_NOT_FOUND));
 
         schedulingService.cancelTask(postingId);
         posting.updateScheduledAt(newScheduledAt);
+        posting.updatePostingContent(content);
 
         schedulingService.scheduleTask(
                 postingId,
@@ -186,22 +187,5 @@ public class PublishPostingService {
         }
         posting.updatePostingState(PostingState.POSTED);
         posting.updateMediaId(mediaId);
-    }
-
-    @Transactional
-    public void rescheduleMultiMedia(Long postingId, LocalDateTime newScheduledAt, SNSType snsType, String content) {
-        Posting posting = postingRepository.findByPostingIdAndPostingStateAndDeletedAtIsNull(postingId, PostingState.SCHEDULED)
-                .orElseThrow(() -> new CoreException(GlobalErrorType.POSTING_NOT_FOUND));
-
-        // 기존 일정 삭제 및 재등록
-        schedulingService.cancelTask(postingId);
-        posting.updateScheduledAt(newScheduledAt);
-        posting.updatePostingContent(content);
-
-        schedulingService.scheduleTask(
-                postingId,
-                newScheduledAt,
-                () -> executeScheduledCarouselMedia(postingId,snsType)
-        );
     }
 }

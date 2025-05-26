@@ -58,18 +58,12 @@ public class PostingController {
         return ApiResponse.success();
     }
 
-    @PutMapping("threads/{postingId}/single/schedule")
-    @Operation(summary = "threads single Media 발행 시간 수정하기", description = "SNS타입을 인자로 받아서 발행시점을 수정함")
+    @PutMapping("{postingId}/single/reschedule")
+    @Operation(summary = "single Media 발행 시간 및 발행 글 수정하기", description = "SNS타입을 인자로 받아서 발행시점 및 발행글을 수정함")
     public ApiResponse<?> updateSingleMediaSchedule(@Valid @RequestBody PostingRequest request,
-                                                    @PathVariable("postingId") Long postingId
-            , @RequestParam("snsType") SNSType snsType) {
-        publishPostingService.rescheduleSingleMedia(postingId, request.scheduledAt(), snsType);
-        return ApiResponse.success();
-    }
-
-    @PutMapping("threads/{postingId}/single/content")
-    @Operation(summary = "threads single Media 발행 내용 수정하기", description = "SNS타입을 인자로 받아서 발행 내용을 수정함")
-    public ApiResponse<?> updateSingleMediaContent(@AuthenticationPrincipal AuthDetails authDetails) {
+                                                    @PathVariable("postingId") Long postingId,
+                                                    @RequestParam("snsType") SNSType snsType) {
+        publishPostingService.rescheduleSingleMedia(postingId, request.scheduledAt(), snsType, request.text());
         return ApiResponse.success();
     }
 
@@ -87,21 +81,14 @@ public class PostingController {
         return ApiResponse.success();
     }
 
-    @PutMapping("threads/{postingId}/carousel/schedule")
-    @Operation(summary = "threads carousel 발행 시간 수정하기", description = "SNS타입을 인자로 받아서 발행시점을 수정함")
+    @PutMapping("{postingId}/carousel/reschedule")
+    @Operation(summary = "carousel Media 발행 시간 및 발행 글 수정하기", description = "SNS타입을 인자로 받아서 발행시점 및 발행 글을 수정합니다")
     public ApiResponse<?> updateCarouselSchedule(@Valid @RequestBody PostingRequest request,
                                                  @PathVariable("postingId") Long postingId,
                                                  @RequestParam("snsType") SNSType snsType) {
-        publishPostingService.rescheduleCarouselMedia(postingId, request.scheduledAt(), snsType);
+        publishPostingService.rescheduleCarouselMedia(postingId, request.scheduledAt(), snsType, request.text() );
         return ApiResponse.success();
     }
-
-    @PutMapping("threads/{postingId}/carousel/content")
-    @Operation(summary = "threads carousel 발행 내용 수정하기", description = "SNS타입을 인자로 받아서 발행 내용을 수정함")
-    public ApiResponse<?> updateCarouselContent(@AuthenticationPrincipal AuthDetails authDetails) {
-        return ApiResponse.success();
-    }
-
 
     @GetMapping("/threads/{postingId}/insight")
     @Operation(summary = "스레드 게시물 인사이트 조회하기", description = "스레드 게시물의 인사이트를 조회하는 메소드.")

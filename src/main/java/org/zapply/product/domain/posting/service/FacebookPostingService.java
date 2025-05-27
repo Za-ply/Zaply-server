@@ -19,36 +19,37 @@ public class FacebookPostingService {
     private final FacebookMediaClient facebookMediaClient;
     private final FacebookPostingClient facebookPostingClient;
 
-    // 페이스북 엑세스 토큰을 가져오는 함수
-    public String getAccessToken(Member member) {
-        return accountService.getAccessToken(member, SNSType.THREADS);
+    public String getPageAccessToken(Member member) {
+        return accountService.getPageToken(member);
     }
 
+    /*
     // 페이스북 미디어를 가져오는 함수
     public String getMediaUrl(Member member) {
         String accessToken = getAccessToken(member);
         String pageId = facebookMediaClient.getPageId(accessToken);
-        return facebookMediaClient.getPagePosts(pageId, accessToken);
+        return facebookMediaClient.getAllPagePosts(member);
     }
+     */
 
     // 페이스북 단일 포스트를 발행하는 함수(text만 포함)
     public String publishOnlyText(Member member, String message) {
-        String accessToken = getAccessToken(member);
-        String pageId = facebookMediaClient.getPageId(accessToken);
-        return facebookPostingClient.createSinglePost(accessToken, pageId, message);
+        String pageAccessToken = getPageAccessToken(member);
+        String pageId = facebookMediaClient.getPageId(pageAccessToken);
+        return facebookPostingClient.createSinglePost(pageAccessToken, pageId, message);
     }
 
     // 페이스북 글, 그림 1개를 발행하는 함수
     public String publishPostWithSinglePhotoAndText(Member member, String photoUrl, String message) {
-        String accessToken = getAccessToken(member);
-        String pageId = facebookMediaClient.getPageId(accessToken);
-        return facebookPostingClient.publishSinglePhotoAndPost(accessToken, pageId, photoUrl, message);
+        String pageAccessToken = getPageAccessToken(member);
+        String pageId = facebookMediaClient.getPageId(pageAccessToken);
+        return facebookPostingClient.publishSinglePhotoAndPost(pageAccessToken, pageId, photoUrl, message);
     }
 
     // 페이스북 글, 그림 여러개를 발행하는 함수
     public String publishPostWithMultiPhotoAndText(Member member, String message, List<String> photoUrls) {
-        String accessToken = getAccessToken(member);
-        String pageId = facebookMediaClient.getPageId(accessToken);
-        return facebookPostingClient.createPagePost(accessToken, pageId, message, photoUrls);
+        String pageAccessToken = getPageAccessToken(member);
+        String pageId = facebookMediaClient.getPageId(pageAccessToken);
+        return facebookPostingClient.createPagePost(pageAccessToken, pageId, message, photoUrls);
     }
 }

@@ -33,6 +33,12 @@ public class VaultClient {
         vaultTemplate.write(fullPath, Map.of("data", Map.of(key, encryptedValue)));
     }
 
+    public void savePageSecret(String path, String key, String value) {
+        String encryptedValue = jasyptStringEncryptor.encrypt(value);
+        String fullPath = "secret/data/" + path;
+        vaultTemplate.write(fullPath, Map.of("data", Map.of(key, encryptedValue)));
+    }
+
     /**
      * Vault에서 시크릿을 가져옴 (AES256 복호화)
      * @param path 시크릿 경로

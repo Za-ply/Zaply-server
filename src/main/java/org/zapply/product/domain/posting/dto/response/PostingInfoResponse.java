@@ -40,6 +40,7 @@ public record PostingInfoResponse(
         return PostingInfoResponse.builder()
                 .postingId(posting.getPostingId())
                 .postingContent(posting.getPostingContent())
+                .scheduledAt(posting.getScheduledAt())
                 .postingType(posting.getPostingType())
                 .postingState(posting.getPostingState())
                 .postingLink(posting.getPostingLink())

@@ -172,7 +172,6 @@ public class PublishPostingService {
         Member member = posting.getProject().getMember();
         PostingRequest postingRequest = PostingRequest.of(MediaType.IMAGE, mediaUrls, posting);
 
-
         String mediaId;
 
         switch (snsType) {

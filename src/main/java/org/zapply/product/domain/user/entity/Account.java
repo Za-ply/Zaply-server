@@ -31,6 +31,9 @@ public class Account extends BaseTimeEntity {
     private String tokenKey;
 
     @Column
+    private String pageTokenKey;
+
+    @Column
     private String email;
 
     @Column(columnDefinition = "TIMESTAMP")
@@ -48,10 +51,11 @@ public class Account extends BaseTimeEntity {
 
     @Builder
     public Account(String accountName, SNSType accountType, String tokenKey, Member member, String email,
-                   LocalDateTime tokenExpireAt, String userId, String profileImageUrl) {
+                   LocalDateTime tokenExpireAt, String userId, String profileImageUrl, String pageTokenKey) {
         this.accountName = accountName;
         this.accountType = accountType;
         this.tokenKey = tokenKey;
+        this.pageTokenKey = pageTokenKey;
         this.member = member;
         this.email = email;
         this.tokenExpireAt = tokenExpireAt;

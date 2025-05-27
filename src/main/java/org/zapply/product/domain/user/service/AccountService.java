@@ -63,6 +63,8 @@ public class AccountService {
     private String linkedinPath;
     @Value("${spring.cloud.vault.instagram-path}")
     private String instagramPath;
+    @Value("${spring.cloud.vault.facebook-page-path}")
+    private String facebookPagePath;
 
 
     /**
@@ -75,13 +77,15 @@ public class AccountService {
     public String linkFacebook(String code, Long memberId) {
         Member member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new CoreException(GlobalErrorType.MEMBER_NOT_FOUND));
+
+        log.info("linkFacebook called with code: {}, memberId: {}", code);
+        // 페이스북에 있는 사용자 정보 반환
+        FacebookProfile facebookProfile = facebookClient.getMemberInfo(code);
         // 페이스북으로 액세스 토큰 요청하기
-        FacebookToken shortFacebookAccessToken = facebookClient.getFacebookAccessToken(code, facebookRedirectUrl);
-        FacebookToken longFacebookAccessToken = facebookClient.getLongLivedToken(shortFacebookAccessToken.accessToken());
+        FacebookToken longFacebookAccessToken = facebookClient.getLongLivedToken(code);
+        log.info("Long-lived Facebook access token: {}", longFacebookAccessToken.accessToken());
         String pageId =  facebookMediaClient.getPageId(longFacebookAccessToken.accessToken());
         FacebookToken longFacebookPageAccessToken = facebookClient.getLongLivedPageAccessToken(pageId, longFacebookAccessToken.accessToken());
-        // 페이스북에 있는 사용자 정보 반환
-        FacebookProfile facebookProfile = facebookClient.getMemberInfo(longFacebookPageAccessToken);
 
         // 반환된 정보의 이메일 추출
         String email = facebookProfile.email();
@@ -91,13 +95,14 @@ public class AccountService {
 
         // key 생성
         String key = "facebook:" + "client:" + generateKey(member.getId(), email);
+        String keyForPage = "facebook:" + "page:" + generateKey(member.getId(), pageId);
 
         // business logic: account 정보가 이미 있다면 확인 후 해당 account 정보를 반환하고, 없다면 새로운 account 정보를 생성하여 반환
         Account account = accountRepository.findByEmailAndAccountTypeAndMember(email, SNSType.FACEBOOK, member)
                 .map(existingAccount -> {
                     // 토큰 만료일 갱신
                     existingAccount.updateTokenExpireAt(LocalDateTime.now().plusDays(60));
-                    existingAccount.updateInfo(facebookProfile.name(), facebookProfile.picture());
+                    existingAccount.updateInfo(facebookProfile.name(), String.valueOf(facebookProfile.picture()));
                     return accountRepository.save(existingAccount);
                 })
                 .orElseGet(() -> {
@@ -107,14 +112,16 @@ public class AccountService {
                             .email(email)
                             .accountType(SNSType.FACEBOOK)
                             .tokenKey(key)
+                            .pageTokenKey(keyForPage)
                             .member(member)
                             .tokenExpireAt(LocalDateTime.now().plusDays(60))
                             .userId(facebookProfile.id())
-                            .profileImageUrl(facebookProfile.picture())
+                            .profileImageUrl(String.valueOf(facebookProfile.picture()))
                             .build();
                     return accountRepository.save(newAccount);
                 });
-        vaultClient.saveSecret(facebookPath, key, longFacebookPageAccessToken.accessToken());
+        vaultClient.saveSecret(facebookPath, key, longFacebookAccessToken.accessToken());
+        vaultClient.savePageSecret(facebookPagePath, keyForPage, longFacebookPageAccessToken.accessToken());
 
         return key;
     }
@@ -247,6 +254,26 @@ public class AccountService {
         }
 
         return accessToken;
+    }
+
+    public final String getPageToken(Member member){
+        Account account = accountRepository.findByAccountTypeAndMember(SNSType.FACEBOOK, member)
+                .orElseThrow(() -> new CoreException(GlobalErrorType.ACCOUNT_TOKEN_KEY_NOT_FOUND));
+
+        String vaultPath = facebookPagePath;
+
+        // 토큰 만료일 체크
+        if (isTokenExpired(account)) {
+            throw new CoreException(GlobalErrorType.TOKEN_INVALID);
+        }
+
+        // Vault에서 페이지 액세스 토큰 가져오기
+        String pageAccessToken = vaultClient.getSecret(vaultPath, account.getPageTokenKey());
+        if (pageAccessToken == null || pageAccessToken.isBlank()) {
+            throw new CoreException(GlobalErrorType.VAULT_TOKEN_NOT_FOUND);
+        }
+
+        return pageAccessToken;
     }
 
     /**

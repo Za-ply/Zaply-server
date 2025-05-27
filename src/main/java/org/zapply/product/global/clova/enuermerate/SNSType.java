@@ -14,7 +14,8 @@ public enum SNSType {
     THREADS("쓰레드"),
     INSTAGRAM("인스타그램"),
     FACEBOOK("페이스북"),
-    LINKEDIN("링크드인");
+    LINKEDIN("링크드인"),
+    TWITTER("트위터");
 
     private final String description;
 }

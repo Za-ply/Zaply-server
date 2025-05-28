@@ -32,6 +32,8 @@ public class AccountController {
                              @AuthenticationPrincipal AuthDetails authDetails,
                              HttpServletResponse response) throws IOException{
         accountService.linkFacebook(accessToken, authDetails.getMember().getId());
+        response.setHeader("Access-Control-Allow-Origin", "http://localhost:3000");
+        response.setHeader("Access-Control-Allow-Credentials", "true");
         String redirectUrl = "http://localhost:3000/facebook/callback";
         response.sendRedirect(redirectUrl);
     }

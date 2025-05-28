@@ -26,16 +26,14 @@ public class AccountController {
     private final LinkedinClient linkedinClient;
     private final InstagramClient instagramClient;
 
+
     @GetMapping("/facebook/link")
     @Operation(summary = "페이스북 액세스 토큰 발급", description = "페이스북 액세스 토큰 발급 (계정연동 API에서 연결되는 URL)")
-    public void linkFacebook(@RequestParam("access_token") String accessToken,
-                             @AuthenticationPrincipal AuthDetails authDetails,
-                             HttpServletResponse response) throws IOException{
+    public ApiResponse<String> linkFacebook(@RequestParam("access_token") String accessToken,
+                                            @AuthenticationPrincipal AuthDetails authDetails,
+                                            HttpServletResponse response) throws IOException{
         accountService.linkFacebook(accessToken, authDetails.getMember().getId());
-        response.setHeader("Access-Control-Allow-Origin", "http://localhost:3000");
-        response.setHeader("Access-Control-Allow-Credentials", "true");
-        String redirectUrl = "http://localhost:3000/facebook/callback";
-        response.sendRedirect(redirectUrl);
+        return ApiResponse.success("계정 연동 성공");
     }
 
     @GetMapping("/threads/login")

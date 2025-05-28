@@ -59,13 +59,14 @@ public class FacebookPostingClient {
         }
     }
 
-    public String publishSinglePhotoAndPost(String accessToken, String pageId, String photoUrl, String message) {
+    public String publishSinglePhotoAndPost(String accessToken, String pageId, String message, String photoUrl) {
         URI uri = UriComponentsBuilder
                 .fromHttpUrl(FB_GRAPH_BASE + "/" + pageId + "/photos")
                 .queryParam("url", photoUrl)
                 .queryParam("message", message)
-                .queryParam("published", true)     // 바로 포스트에 게시
+                .queryParam("published", true)
                 .build().encode().toUri();
+
         try{
             @SuppressWarnings("unchecked")
             String response = restClient.post().uri(uri)
@@ -87,38 +88,39 @@ public class FacebookPostingClient {
                     .build().encode()
                     .toUri();
 
-                // --- 사진이 있으면 unpublished 업로드 후 attached_media 배열 생성 ---
+            // --- 사진이 있으면 unpublished 업로드 후 attached_media 배열 생성 ---
             Map<String,Object> payload = new HashMap<>();
             if (photoUrls != null && !photoUrls.isEmpty()) {
-                    List<Map<String,String>> attached = photoUrls.stream()
-                            .map(url -> Map.of("media_fbid", uploadUnpublishedPhoto(pageId, accessToken, url)))
-                            .collect(Collectors.toList());
-                    payload.put("attached_media", attached);
+                List<Map<String,String>> attached = photoUrls.stream()
+                        .map(url -> Map.of("media_fbid", uploadUnpublishedPhoto(pageId, accessToken, url)))
+                        .collect(Collectors.toList());
+                payload.put("attached_media", attached);
             }
 
-                // --- 메시지가 있으면 payload 에 삽입 ---
+            // --- 메시지가 있으면 payload 에 삽입 ---
             if (message != null && !message.isBlank()) {
-                    payload.put("message", message);
+                payload.put("message", message);
             }
 
-                // --- case: 사진도 없고 메시지도 없으면 예외 처리 ---
+            // --- case: 사진도 없고 메시지도 없으면 예외 처리 ---
             if (payload.isEmpty()) {
-                    throw new IllegalArgumentException("message와 photoUrls 중 최소 하나는 제공되어야 합니다.");
+                throw new IllegalArgumentException("message와 photoUrls 중 최소 하나는 제공되어야 합니다.");
             }
 
-            @SuppressWarnings("unchecked")
-            Map<String,Object> resp = restClient.post()
-                        .uri(feedUri)
-                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .body(payload)
-                        .retrieve()
-                        .body(Map.class);
+            String response = restClient.post()
+                    .uri(feedUri)
+                    .header(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .body(payload)
+                    .retrieve()
+                    .body(String.class);
 
-            return (String) resp.get("id");
+            JsonNode root = objectMapper.readTree(response);
+            return root.get("id").asText();
+
         } catch (Exception ex) {
-                log.error("Error creating Facebook page post", ex);
-                throw new CoreException(GlobalErrorType.FACEBOOK_API_ERROR);
+            log.error("Error creating Facebook page post", ex);
+            throw new CoreException(GlobalErrorType.FACEBOOK_API_ERROR);
         }
     }
 
@@ -132,7 +134,6 @@ public class FacebookPostingClient {
                 .queryParam("published", false)
                 .build().encode()
                 .toUri();
-
         // 1) raw JSON string 으로 받기
         String raw = restClient.post()
                 .uri(photoUri)

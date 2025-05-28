@@ -107,6 +107,10 @@ public class PostingController {
         switch (snsType) {
             case THREADS:
                 return ApiResponse.success(postingQueryService.getAllThreadsMedia(cursor, size, authDetails.getMember()));
+            case INSTAGRAM:
+                return ApiResponse.success(postingQueryService.getAllInstagramMedia(authDetails.getMember(), cursor, size));
+            case FACEBOOK:
+                return ApiResponse.success(postingQueryService.getAllFacebookMedia(authDetails.getMember(), cursor, size));
             default:
                 return ApiResponse.success(null);
         }
@@ -120,6 +124,10 @@ public class PostingController {
         switch (snsType) {
             case THREADS:
                 return ApiResponse.success(postingQueryService.getSingleThreadsMedia(authDetails.getMember(), mediaId));
+            case INSTAGRAM:
+                return ApiResponse.success(postingQueryService.getSingleInstagramMedia(authDetails.getMember(), mediaId));
+            case FACEBOOK:
+                return ApiResponse.success(postingQueryService.getSingleFacebookMedia(authDetails.getMember(), mediaId));
             default:
                 return ApiResponse.success(null);
         }

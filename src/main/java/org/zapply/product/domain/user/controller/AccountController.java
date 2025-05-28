@@ -28,9 +28,10 @@ public class AccountController {
 
     @GetMapping("/facebook/link")
     @Operation(summary = "페이스북 액세스 토큰 발급", description = "페이스북 액세스 토큰 발급 (계정연동 API에서 연결되는 URL)")
-    public void linkFacebook(@RequestParam("code") String code, @RequestParam(value="state") Long memberId,
+    public void linkFacebook(@RequestParam("access_token") String accessToken,
+                             @AuthenticationPrincipal AuthDetails authDetails,
                              HttpServletResponse response) throws IOException{
-        accountService.linkFacebook(code, memberId);
+        accountService.linkFacebook(accessToken, authDetails.getMember().getId());
         response.setHeader("Access-Control-Allow-Origin", "http://localhost:3000");
         response.setHeader("Access-Control-Allow-Credentials", "true");
         String redirectUrl = "http://localhost:3000/facebook/callback";

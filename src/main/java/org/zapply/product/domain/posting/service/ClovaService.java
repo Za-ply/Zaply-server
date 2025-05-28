@@ -31,6 +31,9 @@ public class ClovaService {
     @Value("${cloud.ncp.clova.model-name}")
     private String modelName;
 
+    @Value("${prompt.title.system}")
+    private String titleSystemPrompt;
+
     @Value("${prompt.snstype.threads}")
     private String threadsPrompt;
 
@@ -40,8 +43,11 @@ public class ClovaService {
     @Value("${prompt.snstype.facebook}")
     private String facebookPrompt;
 
-    @Value("${prompt.title.system}")
-    private String titleSystemPrompt;
+    @Value("${prompt.snstype.linkedin}")
+    private String linkedinPrompt;
+
+    @Value("${prompt.snstype.twitter}")
+    private String twitterPrompt;
 
     private final ClovaAiClient clovaAiClient;
 
@@ -67,6 +73,8 @@ public class ClovaService {
                 case THREADS -> systemPrompt = threadsPrompt;
                 case INSTAGRAM -> systemPrompt = instagramPrompt;
                 case FACEBOOK -> systemPrompt = facebookPrompt;
+                case LINKEDIN -> systemPrompt = linkedinPrompt;
+                case TWITTER -> systemPrompt = twitterPrompt;
                 default -> throw new CoreException(GlobalErrorType.SNS_TYPE_NOT_FOUND);
             }
 

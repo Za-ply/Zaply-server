@@ -36,7 +36,7 @@ http://zapply.site/swagger-ui/index.html
 <br></br>
 
 ## 🔨 Project Architecture
-![image](https://github.com/user-attachments/assets/e648f450-065a-4160-93da-0ecf269d603b)
+![image](https://github.com/user-attachments/assets/480e75ba-bae1-453c-94e7-dce74b89cb24)
 
 <br></br>
 

@@ -26,6 +26,7 @@ public class AccountController {
     private final LinkedinClient linkedinClient;
     private final InstagramClient instagramClient;
 
+
     @GetMapping("/facebook/link")
     @Operation(summary = "페이스북 액세스 토큰 발급", description = "페이스북 액세스 토큰 발급 (계정연동 API에서 연결되는 URL)")
     public ApiResponse<String> linkFacebook(@RequestParam("access_token") String accessToken,

@@ -17,6 +17,9 @@ public record PostingRequest(
         @Schema(description = "미디어 타입", example = "IMAGE || VIDEO || TEXT")
         MediaType mediaType,
 
+        @Schema(description = "미디어 제목", example = "미디어 제목")
+        String title,
+
         @NotNull
         @Schema(description = "미디어 URL들",
                 example = "[\"https://zaply-landing.vercel.app/assets/images/ZaplyLanding.webp\"," +
@@ -37,6 +40,7 @@ public record PostingRequest(
                 return PostingRequest.builder()
                         .mediaType(mediaType)
                         .media(imageUrls)
+                        .title(posting.getTitle())
                         .text(posting.getPostingContent())
                         .scheduledAt(posting.getScheduledAt())
                         .build();

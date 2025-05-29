@@ -3,6 +3,9 @@ package org.zapply.product.domain.posting.entity;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+
 import org.zapply.product.domain.project.entity.Project;
 import org.zapply.product.global.BaseTimeEntity;
 import org.zapply.product.domain.posting.enumerate.PostingState;
@@ -17,6 +20,9 @@ public class Posting extends BaseTimeEntity {
     @Column
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long postingId;
+
+    @Column
+    private String title;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "project_id", nullable = false)
@@ -42,6 +48,9 @@ public class Posting extends BaseTimeEntity {
     @Column
     private String mediaId;
 
+    @OneToMany(mappedBy = "posting", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    private List<Image> images = new ArrayList<>();
+
     public void updateScheduledAt(LocalDateTime scheduledAt) {
         this.scheduledAt = scheduledAt;
     }
@@ -56,11 +65,12 @@ public class Posting extends BaseTimeEntity {
 
     public void updatePostingContent(String content) { this.postingContent = content; }
     @Builder
-    public Posting(Project project, SNSType postingType, String postingContent,
+    public Posting(Project project, SNSType postingType, String postingContent, String title,
                    PostingState postingState, String postingLink, String mediaId, LocalDateTime scheduledAt) {
         this.project       = project;
         this.postingType   = postingType;
         this.postingContent = postingContent;
+        this.title = title;
         this.scheduledAt   = scheduledAt;
         this.postingState  = postingState;
         this.postingLink   = postingLink;

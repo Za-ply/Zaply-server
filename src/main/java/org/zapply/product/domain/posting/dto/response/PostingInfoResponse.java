@@ -39,6 +39,7 @@ public record PostingInfoResponse(
     public static PostingInfoResponse of(Posting posting, List<String> images) {
         return PostingInfoResponse.builder()
                 .postingId(posting.getPostingId())
+                .postingTitle(posting.getTitle())
                 .postingContent(posting.getPostingContent())
                 .scheduledAt(posting.getScheduledAt())
                 .postingType(posting.getPostingType())

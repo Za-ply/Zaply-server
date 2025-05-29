@@ -21,6 +21,9 @@ public class Posting extends BaseTimeEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long postingId;
 
+    @Column
+    private String title;
+
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "project_id", nullable = false)
     private Project project;
@@ -62,11 +65,12 @@ public class Posting extends BaseTimeEntity {
 
     public void updatePostingContent(String content) { this.postingContent = content; }
     @Builder
-    public Posting(Project project, SNSType postingType, String postingContent,
+    public Posting(Project project, SNSType postingType, String postingContent, String title,
                    PostingState postingState, String postingLink, String mediaId, LocalDateTime scheduledAt) {
         this.project       = project;
         this.postingType   = postingType;
         this.postingContent = postingContent;
+        this.title = title;
         this.scheduledAt   = scheduledAt;
         this.postingState  = postingState;
         this.postingLink   = postingLink;

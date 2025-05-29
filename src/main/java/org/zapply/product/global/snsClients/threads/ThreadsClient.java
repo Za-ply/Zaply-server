@@ -90,6 +90,7 @@ public class ThreadsClient {
         try {
             return objectMapper.readValue(response, ThreadsToken.class);
         } catch (Exception e) {
+            log.info("스레드 액세스 토큰 요청 실패: {}", e.getMessage());
             throw new CoreException(GlobalErrorType.THREADS_API_ERROR);
         }
     }
@@ -111,6 +112,7 @@ public class ThreadsClient {
                     .body(String.class);
             return objectMapper.readValue(response, ThreadsProfile.class);
         } catch (Exception e) {
+            log.info("스레드 프로필 정보 요청 실패: {}", e.getMessage());
             throw new CoreException(GlobalErrorType.THREADS_API_ERROR);
         }
     }
@@ -136,8 +138,10 @@ public class ThreadsClient {
 
             return objectMapper.readValue(response, ThreadsToken.class);
         } catch (JsonProcessingException e) {
+            log.info("스레드 장기 액세스 토큰 요청 실패: {}", e.getMessage());
             throw new CoreException(GlobalErrorType.JSON_PROCESSING_ERROR);
         } catch (Exception e) {
+            log.info("스레드 장기 액세스 토큰 요청 실패: {}", e.getMessage());
             throw new CoreException(GlobalErrorType.THREADS_API_ERROR);
         }
     }

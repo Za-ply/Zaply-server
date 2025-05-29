@@ -71,6 +71,7 @@ public class ThreadsPostingClient {
                     .retrieve()
                     .body(Map.class);
         } catch (Exception e) {
+            log.error("Error posting to Threads API: {}", e.getMessage());
             throw new CoreException(GlobalErrorType.THREADS_API_ERROR);
         }
     }
@@ -159,6 +160,7 @@ public class ThreadsPostingClient {
             String publishedId = publishMediaContainer(mediaId, accessToken, account.getUserId());
             return savePosting(publishedId, projectId, request.mediaType().getDescription(), request.media().getFirst(), request.text());
         } catch (Exception e) {
+            log.error("Error creating single media post on Threads: {}", e.getMessage());
             throw new CoreException(GlobalErrorType.THREADS_API_ERROR);
         }
     }
@@ -170,6 +172,7 @@ public class ThreadsPostingClient {
             String mediaId = createMediaContainer(request.mediaType().getDescription(), request.media().getFirst(), accessToken, account.getUserId(), false, request.text());
             return publishMediaContainer(mediaId, accessToken, account.getUserId());
         } catch (Exception e) {
+            log.error("Error updating single media post on Threads: {}", e.getMessage());
             throw new CoreException(GlobalErrorType.THREADS_API_ERROR);
         }
     }
@@ -206,6 +209,7 @@ public class ThreadsPostingClient {
             String publishedId = publishMediaContainer(containerId, accessToken, account.getUserId());
             return savePosting(publishedId, projectId, request.mediaType().getDescription(), request.media().getFirst(), request.text());
         } catch (Exception e) {
+            log.error("Error creating carousel media post on Threads: {}", e.getMessage());
             throw new CoreException(GlobalErrorType.THREADS_API_ERROR);
         }
     }
@@ -234,6 +238,7 @@ public class ThreadsPostingClient {
             String containerId = String.valueOf(postToThreadsApi(containerUri).get("id"));
             return publishMediaContainer(containerId, accessToken, account.getUserId());
         } catch (Exception e) {
+            log.error("Error updating carousel media post on Threads: {}", e.getMessage());
             throw new CoreException(GlobalErrorType.THREADS_API_ERROR);
         }
     }

@@ -90,6 +90,7 @@ public class ThreadsMediaClient {
                     .retrieve()
                     .body(ThreadsMediaResponse.ThreadsMedia.class);
         } catch (Exception e) {
+            log.error("Error fetching Threads media by ID {}: {}", mediaId, e.getMessage());
             throw new CoreException(GlobalErrorType.THREADS_MEDIA_NOT_FOUND);
         }
 
@@ -178,6 +179,7 @@ public class ThreadsMediaClient {
                 return String.valueOf(response.get("media_url"));
             }
         } catch (Exception e) {
+            log.error("Error fetching media URL for Threads media ID {}: {}", mediaId, e.getMessage());
             throw new CoreException(GlobalErrorType.THREADS_MEDIA_NOT_FOUND);
         }
         return null;

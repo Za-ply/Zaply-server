@@ -3,6 +3,8 @@ package org.zapply.product.global.snsClients.facebook.service;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
@@ -23,6 +25,7 @@ import java.nio.charset.StandardCharsets;
 @RequiredArgsConstructor
 public class FacebookClient {
 
+    private static final Logger log = LoggerFactory.getLogger(FacebookClient.class);
     private final MemberRepository memberRepository;
     @Value("${spring.security.oauth2.client.registration.facebook.client-id}")
     private String clientId;
@@ -84,6 +87,7 @@ public class FacebookClient {
             JsonNode jsonNode = objectMapper.readTree(response);
             return new FacebookToken(jsonNode.get("access_token").asText());
         } catch (IOException e) {
+            log.info("페이스북 액세스 토큰 요청 실패: {}", e.getMessage());
             throw new CoreException(GlobalErrorType.FACEBOOK_API_ERROR);
         }
     }
@@ -122,6 +126,7 @@ public class FacebookClient {
                     picture
             );
         } catch (IOException e) {
+            log.info("페이스북 사용자 정보 요청 실패: {}", e.getMessage());
             throw new CoreException(GlobalErrorType.FACEBOOK_API_ERROR);
         }
     }
@@ -149,6 +154,7 @@ public class FacebookClient {
             JsonNode jsonNode = objectMapper.readTree(response);
             return new FacebookToken(jsonNode.get("access_token").asText());
         } catch (IOException e) {
+            log.info("페이스북 장기 액세스 토큰 요청 실패: {}", e.getMessage());
             throw new CoreException(GlobalErrorType.FACEBOOK_API_ERROR);
         }
     }
@@ -163,6 +169,7 @@ public class FacebookClient {
             JsonNode jsonNode = objectMapper.readTree(response);
             return new FacebookToken(jsonNode.at("/data/0/access_token").asText(null));
         } catch (IOException e) {
+            log.info("페이스북 페이지 액세스 토큰 요청 실패: {}", e.getMessage());
             throw new CoreException(GlobalErrorType.FACEBOOK_API_ERROR);
         }
     }
@@ -178,6 +185,7 @@ public class FacebookClient {
             JsonNode jsonNode = objectMapper.readTree(response);
             return new FacebookToken(jsonNode.at("/data/0/access_token").asText(null));
         } catch (IOException e) {
+            log.info("페이스북 페이지 액세스 토큰 요청 실패: {}", e.getMessage());
             throw new CoreException(GlobalErrorType.FACEBOOK_API_ERROR);
         }
     }

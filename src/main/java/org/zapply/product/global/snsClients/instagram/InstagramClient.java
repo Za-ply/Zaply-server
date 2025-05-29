@@ -141,6 +141,7 @@ public class InstagramClient {
             return tokenResponse.accessToken();
 
         } catch (Exception e) {
+            log.error("Error exchanging short-lived token for long-lived token: {}", e.getMessage());
             throw new CoreException(GlobalErrorType.INSTAGRAM_API_ERROR);
         }
     }

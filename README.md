@@ -34,7 +34,7 @@
 <br></br>
 
 ## API 명세서
-http://zapply.site/swagger-ui/index.html
+https://api.zapply.site/swagger-ui/index.html
 
 <br></br>
 

@@ -9,6 +9,8 @@ import org.zapply.product.domain.project.dto.response.ProjectInfoResponse;
 import org.zapply.product.domain.project.entity.Project;
 import org.zapply.product.domain.project.repository.ProjectRepository;
 import org.zapply.product.domain.user.entity.Member;
+import org.zapply.product.global.apiPayload.exception.CoreException;
+import org.zapply.product.global.apiPayload.exception.GlobalErrorType;
 import org.zapply.product.global.clova.enuermerate.SNSType;
 
 import java.time.LocalDateTime;
@@ -52,5 +54,13 @@ public class ProjectService {
                     );
                 })
                 .collect(Collectors.toList());
+    }
+
+    @Transactional
+    public void deleteProject(Member member, Long projectId) {
+        Project project = projectRepository.findByProjectIdAndMemberAndDeletedAtIsNull(projectId, member)
+                .orElseThrow(() -> new CoreException(GlobalErrorType.PROJECT_NOT_FOUND));
+
+        projectRepository.delete(project);
     }
 }

@@ -5,8 +5,12 @@ import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.zapply.product.domain.posting.entity.Posting;
 import org.zapply.product.domain.user.entity.Member;
 import org.zapply.product.global.BaseTimeEntity;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Getter
 @Entity
@@ -27,6 +31,9 @@ public class Project extends BaseTimeEntity {
 
     @Column
     private String projectThumbnail;
+
+    @OneToMany(mappedBy = "project", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    private List<Posting> postings = new ArrayList<>();
 
     @Builder
     public Project(Member member, String projectTitle) {

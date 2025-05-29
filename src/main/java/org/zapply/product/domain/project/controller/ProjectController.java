@@ -31,4 +31,12 @@ public class ProjectController {
     public ApiResponse<List<ProjectInfoResponse>> getUserProjects(@AuthenticationPrincipal AuthDetails authDetails) {
         return ApiResponse.success(projectService.getProjects(authDetails.getMember()));
     }
+
+    @DeleteMapping("/{projectId}")
+    @Operation(summary = "프로젝트 삭제하기", description = "프로젝트를 삭제한다")
+    public ApiResponse<?> deleteProject(@AuthenticationPrincipal AuthDetails authDetails,
+                                        @PathVariable Long projectId) {
+        projectService.deleteProject(authDetails.getMember(), projectId);
+        return ApiResponse.success();
+    }
 }

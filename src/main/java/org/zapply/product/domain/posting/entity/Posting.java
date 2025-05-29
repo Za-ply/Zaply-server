@@ -3,6 +3,9 @@ package org.zapply.product.domain.posting.entity;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+
 import org.zapply.product.domain.project.entity.Project;
 import org.zapply.product.global.BaseTimeEntity;
 import org.zapply.product.domain.posting.enumerate.PostingState;
@@ -41,6 +44,9 @@ public class Posting extends BaseTimeEntity {
 
     @Column
     private String mediaId;
+
+    @OneToMany(mappedBy = "posting", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    private List<Image> images = new ArrayList<>();
 
     public void updateScheduledAt(LocalDateTime scheduledAt) {
         this.scheduledAt = scheduledAt;
